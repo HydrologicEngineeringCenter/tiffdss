@@ -1,0 +1,6 @@
+[submodule "hec-dss"]
+	path = hec-dss
+	url = https://github.com/HydrologicEngineeringCenter/hec-dss.git
+[submodule "dss-test-data"]
+	path = dss-test-data
+	url = https://github.com/HydrologicEngineeringCenter/dss-test-data.git
