@@ -30,4 +30,17 @@ docker build -f Dockerfile.develop  -t karl-dev
 
 ## run developer container with pwd mounted under /code
 
-docker run -it -v$(pwd):/code:z karl-dev# dss-docker
+docker run -it -v$(pwd):/code:z karl-dev
+
+# some gdal examples
+
+ docker run --rm -v $PWD:/karl osgeo/gdal:alpine-small-latest gdal_translate -of AAIGrid karl/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-190000.tif   karl/a.txt
+
+docker run --rm -v $PWD:/karl osgeo/gdal:alpine-small-latest gdalinfo  karl/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-190000.tif  
+
+
+# references
+
+https://github.com/USACE/pydsstools/blob/testing/2.1.1/tests/test1.py
+
+https://github.com/USACE/cumulus-api/blob/stable/async_packager/packager/writers/dss7.py
