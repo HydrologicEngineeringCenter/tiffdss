@@ -1,18 +1,9 @@
 // Convert from GeoTiff to a DSS record
 
-//#include <stdlib.h>
 #include "gdal.h"
 #include "gdal_utils.h"
 #include "cpl_conv.h" /* for CPLMalloc() */
 
-/*
-gcc -Wall tiff2dss.c -o tiff2dss -lgdal  -lm -
-
-#python.
-
-system.exec('tiff2dss /tmp/abc.tif /tmp/xyz.dss ..... ')
-
-*/
 int tiff2dss(char* tiffFileName, char* dssFileName, char* dssPath,char* dss_type, char* grid_type)
 {
     // https://github.com/USACE/cumulus-api/blob/stable/async_packager/packager/writers/dss7.py
@@ -27,20 +18,11 @@ int tiff2dss(char* tiffFileName, char* dssFileName, char* dssPath,char* dss_type
     }
     else{
      printf("\nError.... reading %s",tiffFileName);
+     return -1;
     }
     
      CPLFree(msg);
 
-    //return 1;
+    return 0;
 }
 
-int main(){
-    //https://gdal.org/user/virtual_file_systems.html
-    ///vsis3/, /vsigs/, /vsiaz/, /vsioss/ or /vsiswift/.
-     //tiff2dss("s3://myaws-east1.1255/a.tif","a.dss","/GRID/RECORD/DATA/01jan2019:1200/01jan2019:1300/Ex10a/","PER-AVER","specified");
-    int rval = tiff2dss("a.tif","a.dss","/GRID/RECORD/DATA/01jan2019:1200/01jan2019:1300/Ex10a/","PER-AVER","specified");
-    if(rval != 0)
-    {
-        printf("\nerrro... %d",rval);
-    }
-}

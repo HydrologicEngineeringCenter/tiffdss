@@ -1,0 +1,2 @@
+gcc a.cpp -lgdal
+./a.out
