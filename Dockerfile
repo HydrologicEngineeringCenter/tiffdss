@@ -2,8 +2,8 @@ FROM osgeo/gdal:alpine-normal-3.4.1
 
 RUN apk add gcc
 RUN apk add g++
-apk add zlib-dev
-apk add gfortran
+RUN apk add zlib-dev
+RUN apk add gfortran
 #apk add zlib
 
 
