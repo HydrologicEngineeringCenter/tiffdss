@@ -1,6 +1,9 @@
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
+
+extern "C"{
 #include "save_to_dss.h"
+}
 
 void PrintDataSetInfo(GDALDataset* ds );
 

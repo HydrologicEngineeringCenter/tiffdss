@@ -2,6 +2,9 @@ FROM osgeo/gdal:alpine-normal-3.4.1
 
 RUN apk add gcc
 RUN apk add g++
+apk add zlib-dev
+apk add gfortran
+#apk add zlib
 
 
 # These commands copy your files into the specified directory in the image
