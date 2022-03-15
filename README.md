@@ -3,6 +3,12 @@
 
 This projects first goal is to convert a GeoTIFF to a DSS record.
 
+clone with 
+```bash
+git clone https://github.com/HydrologicEngineeringCenter/dss-container.git
+git submodule update --init --recursive
+```
+
 
 Design expressed below as a feature list by example:
 
