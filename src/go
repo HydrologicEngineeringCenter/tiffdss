@@ -1,2 +1,3 @@
-gcc a.cpp -lgdal
-./a.out
+rm ./tiff2dss
+gcc tiff2dss.cpp save_to_dss.cpp -I../hec-dss/heclib/heclib_c/src/headers -lgdal -o tiff2dss
+./tiff2dss "../dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-170000.tif" /tmp/out.dss
