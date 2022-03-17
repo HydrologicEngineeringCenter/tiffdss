@@ -6,6 +6,7 @@ extern "C"{
 }
 
 void PrintDataSetInfo(GDALDataset* ds );
+const char* GetUnits( GDALRasterBand* grid );
 
 int main(int argc, const char *args[] )
 {
@@ -35,11 +36,14 @@ int main(int argc, const char *args[] )
         fprintf( stderr,
                  "gdalinfo failed - unable to open '%s'.\n", tiffFilename );
     } 
-    PrintDataSetInfo(ds);
+    //PrintDataSetInfo(ds);
     GDALRasterBand* grid = ds->GetRasterBand(1);
     int xsize = grid->GetXSize();
     int ysize = grid->GetYSize();
     double nodata = grid->GetNoDataValue();
+
+    const char* units = GetUnits(grid);
+    printf("\nUnits=%s",units);
 
     printf("\nxsize = %d, ysize = %d",xsize,ysize);
     int data_size = xsize*ysize;
@@ -75,6 +79,24 @@ int main(int argc, const char *args[] )
 
 }
 
+const char* GetUnits( GDALRasterBand* grid ){
+    char** metadata = grid->GetMetadata();
+
+    /*char* name=*metadata;
+    while(name != nullptr)
+    {
+        printf("\n%s",name);
+        metadata++;
+        name = *metadata;
+    }*/
+
+    const char* unit = CSLFetchNameValue(metadata,"GRIB_UNIT");
+    if(unit == nullptr)
+    {
+        unit = "unknown";
+    }
+    return unit;
+}
 void PrintDataSetInfo(GDALDataset* ds ){
     double        adfGeoTransform[6];
 printf( "Driver: %s/%s\n",
