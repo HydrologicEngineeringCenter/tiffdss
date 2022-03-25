@@ -2,6 +2,9 @@
 export HLIBSC=../hec-dss/heclib/heclib_f/Output/libhec_f.a
 export HLIBSF=../hec-dss/heclib/heclib_c/Output/libhec_c.a
 
-rm ./tiff2dss
-gcc tiff2dss.cpp save_to_dss.c ../hec-dss/heclib/Output/heclib.a -I../hec-dss/heclib/heclib_c/src/headers -lgfortran -lgdal -lm -lz -o tiff2dss
+rm ./tiff2dss *.o
+gcc -c -std=c++11  tiff2dss.cpp 
+gcc -c save_to_dss.c -I../hec-dss/heclib/heclib_c/src/headers 
+
+gcc tiff2dss.o save_to_dss.o $HLIBSC $HLIBSF  $HLIBSC $HLIBSF -lstdc++ -lgfortran -lgdal -lm  -lz -o tiff2dss
 ./tiff2dss "../dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-170000.tif" /tmp/out.dss "//MRMS/QPE/16Feb2022:1700//Pass1/"

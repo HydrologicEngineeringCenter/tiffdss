@@ -1,12 +1,15 @@
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
+#include <string>
+#include <iostream>
+using std::string;
 
 extern "C"{
 #include "save_to_dss.h"
 }
 
 void PrintDataSetInfo(GDALDataset* ds );
-const char* GetUnits( GDALRasterBand* grid );
+string GetUnits( GDALRasterBand* grid );
 
 int main(int argc, const char *args[] )
 {
@@ -42,8 +45,8 @@ int main(int argc, const char *args[] )
     int ysize = grid->GetYSize();
     double nodata = grid->GetNoDataValue();
 
-    const char* units = GetUnits(grid);
-    printf("\nUnits=%s",units);
+    string units = GetUnits(grid);
+    printf("\nUnits=%s",units.c_str());
 
     printf("\nxsize = %d, ysize = %d",xsize,ysize);
     int data_size = xsize*ysize;
@@ -79,7 +82,7 @@ int main(int argc, const char *args[] )
 
 }
 
-const char* GetUnits( GDALRasterBand* grid ){
+string GetUnits( GDALRasterBand* grid ){
     char** metadata = grid->GetMetadata();
 
     /*char* name=*metadata;
@@ -90,12 +93,21 @@ const char* GetUnits( GDALRasterBand* grid ){
         name = *metadata;
     }*/
 
-    const char* unit = CSLFetchNameValue(metadata,"GRIB_UNIT");
-    if(unit == nullptr)
+    const char* u = CSLFetchNameValue(metadata,"GRIB_UNIT");
+    if(u == nullptr)
     {
-        unit = "unknown";
+        return string("");
     }
-    return unit;
+    
+    auto unit =string(u);
+    if( unit.empty())
+      return string("");
+
+    // trim out square brackets [units]
+     if( unit.front()=='[' && unit.back()==']' && unit.size()>2)
+          return unit.substr(1,unit.size()-2);
+
+    return string(u);
 }
 void PrintDataSetInfo(GDALDataset* ds ){
     double        adfGeoTransform[6];

@@ -31,7 +31,7 @@ docker run -v $(pwd):/data hec/dss print-dataset data/test.dss  "//SACRAMENTO/PR
 
 ## Build container for development
 
-docker build -f Dockerfile.develop  -t karl-dev
+docker build -f Dockerfile.develop . -t karl-dev
 
 
 ## run developer container with pwd mounted under /code
