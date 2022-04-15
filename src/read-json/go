@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -f a.out
+g++ read-json.cpp jsoncpp.cpp -I ./json
+./a.out
