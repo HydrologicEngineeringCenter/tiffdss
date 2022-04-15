@@ -104,7 +104,7 @@ string GetUnits( GDALRasterBand* grid ){
       return string("");
 
     // trim out square brackets [units]
-     if( unit.front()=='[' && unit.back()==']' && unit.size()>2)
+     if( unit.size()>2 && unit.front()=='[' && unit.back()==']' )
           return unit.substr(1,unit.size()-2);
 
     return string(u);

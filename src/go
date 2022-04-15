@@ -2,7 +2,7 @@
 export HLIBSC=../hec-dss/heclib/heclib_f/Output/libhec_f.a
 export HLIBSF=../hec-dss/heclib/heclib_c/Output/libhec_c.a
 
-rm ./tiff2dss *.o
+rm -f ./tiff2dss *.o /tmp/out.dss
 gcc -c -std=c++11  tiff2dss.cpp 
 gcc -c save_to_dss.c -I../hec-dss/heclib/heclib_c/src/headers 
 
