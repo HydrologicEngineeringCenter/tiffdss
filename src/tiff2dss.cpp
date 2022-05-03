@@ -27,14 +27,14 @@ int main(int argc, const char *args[] )
     const char* dssPathname=args[3];
 
     GDALAllRegister();
-     GDALDataset* ds = (GDALDataset*) GDALOpenEx( tiffFilename,
+    GDALDataset* ds = (GDALDataset*) GDALOpenEx( tiffFilename,
                       GDAL_OF_READONLY | GDAL_OF_RASTER | GDAL_OF_VERBOSE_ERROR,
                       nullptr, //psOptionsForBinary->papszAllowInputDrivers,
                       nullptr , //psOptionsForBinary->papszOpenOptions, 
                       nullptr );
 
     
-     if( ds == nullptr )
+    if( ds == nullptr )
     {
         fprintf( stderr,
                  "gdalinfo failed - unable to open '%s'.\n", tiffFilename );

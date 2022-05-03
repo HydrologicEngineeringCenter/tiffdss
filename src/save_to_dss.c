@@ -70,12 +70,7 @@ int save_to_dss(const char* filename, const char* dssPath, float* data,int data_
 	gridStructStore->_minDataValue = &min;
 	gridStructStore->_meanDataValue = &mean;
 
-	// Data
-	data = (float*)calloc(gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY, sizeof(float));
-
 	if (data != NULL) {
-		for (idx = 0; idx < gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY; idx++)
-			data[idx] = (idx * 1.2);
 		gridStructStore->_data = data;
 
 		status = zspatialGridStore(ifltab, gridStructStore);
