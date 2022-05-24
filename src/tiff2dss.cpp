@@ -52,7 +52,12 @@ int main(int argc, const char *args[] )
     int data_size = xsize*ysize;
     printf("\nnodata = %lf",nodata);
     printf("\n");
-    float* data = (float *) CPLMalloc(sizeof(float)*(data_size));
+    float* data = (float *) malloc(sizeof(float)*(data_size));
+    if( data == 0)
+      {
+          printf("\nError allocating memory for data array");
+          return -12;
+      }
     int status = grid->RasterIO( GF_Read, 0, 0, xsize, ysize,
                 data, xsize, ysize, GDT_Float32,  0, 0 );
 
@@ -61,23 +66,14 @@ int main(int argc, const char *args[] )
         printf("\nError reading grid data");
     }
     else
-    { //int save_to_dss(char* filename, char* dssPath, float* data,int data_size , int cols, int rows)
-        save_to_dss(dssFilename,dssPathname,data,data_size,xsize,ysize);
+    { 
+        save_to_dss(dssFilename,dssPathname,data,data_size,xsize,ysize,nodata);
     }
     int count =0;
 
-    for(int i=0; i<xsize; i++)
-    {
-        if (data[i] !=0)
-          printf("%f ",data[i]);
+    
 
-        count ++;
-
-        if (count >10)
-           break;
-    }
-
-    CPLFree(data);
+    free(data);
     GDALClose(ds);
 
 }

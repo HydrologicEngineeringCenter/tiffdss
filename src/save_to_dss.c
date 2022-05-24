@@ -3,9 +3,21 @@
 
 #include "heclib.h"
 
+void compute_grid_statistics(zStructSpatialGrid* grid );
 
-int save_to_dss(const char* filename, const char* dssPath, float* data,int data_size , int cols, int rows)
+void print_grid_data(float* data, int size){
+
+for(int i=0; i<size; i++)
+    {
+        if (data[i] !=0)
+          printf("%f ",data[i]);
+    }
+}
+
+int save_to_dss(const char* filename, const char* dssPath, float* data,int data_size , int cols, 
+    int rows, double nodata)
 {
+	//print_grid_data(data,data_size);
 	long long ifltab[250];
 	memset(ifltab, 0, 250 * sizeof(long long));
 
@@ -20,22 +32,8 @@ int save_to_dss(const char* filename, const char* dssPath, float* data,int data_
 		return -2;
 	}
 
-    int range =2;
- 
     zStructSpatialGrid *gridStructStore;
 	int idx;
-
-	static float *rangelimit;
-	static int *histo;
-
-	rangelimit =(float*)  calloc(range, sizeof(float));
-	histo = (int*)calloc(range, sizeof(int));
-
-	for (idx = 0; idx < range; idx++) {
-		rangelimit[idx] = idx * 1.1;
-		histo[idx] = idx * 2;
-	}
-
 	gridStructStore = zstructSpatialGridNew(dssPath);
 
 	//   Gen data
@@ -51,9 +49,7 @@ int save_to_dss(const char* filename, const char* dssPath, float* data,int data_
 	gridStructStore->_cellSize = 5.0;
 	gridStructStore->_compressionMethod = ZLIB_COMPRESSION;
 
-	gridStructStore->_rangeLimitTable = &(rangelimit[0]);
-	gridStructStore->_numberEqualOrExceedingRangeLimit = &(histo[0]);
-	gridStructStore->_numberOfRanges = range;
+
 	gridStructStore->_srsDefinitionType = 1;
 	gridStructStore->_srsName = "SRC_NAME";
 	gridStructStore->_srsDefinition = "TEST";
@@ -65,24 +61,107 @@ int save_to_dss(const char* filename, const char* dssPath, float* data,int data_
 	gridStructStore->_isInterval = 1;
 	gridStructStore->_isTimeStamped = 0;
 
-	float max = (rows * cols)*1.2, min = 0.001, mean = (rows * cols * 1.2) / 2.0;
-	gridStructStore->_maxDataValue = &max;
-	gridStructStore->_minDataValue = &min;
-	gridStructStore->_meanDataValue = &mean;
+
+
 
 	if (data != NULL) {
 		gridStructStore->_data = data;
-
+		printf("\nabout to compute stats...\n");
+		compute_grid_statistics(gridStructStore);
+		printf("\nreturn from compute stats...\n");
+		printGridStruct(ifltab, 0, gridStructStore);
+		zset("mlvl","",22);
 		status = zspatialGridStore(ifltab, gridStructStore);
-
 		if (status != STATUS_OKAY) {
 			printf("Error storing grid: %d", status);
 		}
-
 		//printGridStruct(ifltab, 0, gridStructStore);
-		free(data);
 		zstructFree(gridStructStore);
 
 	}
+	zclose(ifltab);
 	return status;
+}
+
+void compute_grid_statistics(zStructSpatialGrid* grid ){
+    int numberOfRanges = 13;
+	grid->_numberOfRanges = numberOfRanges;
+	if( grid->_rangeLimitTable != 0)
+	    free(grid->_rangeLimitTable);
+	
+	grid->_rangeLimitTable = (float *)calloc(grid->_numberOfRanges, 4);
+
+	float* range = (float*)grid->_rangeLimitTable;
+
+     if( grid->_numberEqualOrExceedingRangeLimit!=0)
+	    free(grid->_numberEqualOrExceedingRangeLimit);
+
+	grid->_numberEqualOrExceedingRangeLimit = (int *)calloc(grid->_numberOfRanges, 4);
+	int* count = (int*)grid->_numberEqualOrExceedingRangeLimit;
+
+     // set the default range
+	if( UNDEFINED_FLOAT < 0.){
+		range[0]  = UNDEFINED_FLOAT;
+	}else{
+		range[0]  = -UNDEFINED_FLOAT;
+	}
+
+	range[1]  =    0.0f;
+	range[2]  =    0.0000001f;
+	range[3]  =    5.0f;
+	range[4]  =   10.0f;
+	range[5]  =   20.0f;
+	range[6]  =   50.0f;
+	range[7]  =  100.0f;
+	range[8]  =  200.0f;
+	range[9]  =  500.0f;
+	range[10] = 1000.0f;
+	range[11] = 2000.0f;
+	range[12] = 5000.0f;
+	
+  int x = grid->_numberOfCellsX;
+  int y = grid->_numberOfCellsY;
+
+  float* data = (float*)grid->_data;
+  float max = -2.0e38f;
+  float min = 2.0e38f;
+  float mean = UNDEFINED_FLOAT;
+  float sum = 0.0f;		
+  int numDefined=0;
+
+  for (int i = 0; i<x; i++) {
+    for (int j = 0; j<y; j++) {
+      int k = j * x + i;
+	  //if( data[k] != 0.0)
+		//  printf("\ndata[%d] %f",k,data[k]);
+
+      if (data[k] != UNDEFINED_FLOAT) {
+        numDefined++;
+        sum += data[k];
+        if (data[k] > max)  max = data[k];
+        if (data[k] < min)  min = data[k];
+      }
+
+      for (int n = 0; n<numberOfRanges; n++)
+        if (data[k] >= range[n]) count[n]++;
+
+    }
+  }
+  if (numDefined > 0){
+   mean = sum / numDefined;
+  }
+  else {
+    max = UNDEFINED_FLOAT;
+    min = UNDEFINED_FLOAT;
+    mean = UNDEFINED_FLOAT;
+  }
+  	
+	grid->_maxDataValue = calloc(1, sizeof(float));
+	grid->_minDataValue = calloc(1, sizeof(float));
+	grid->_meanDataValue = calloc(1, sizeof(float));
+
+    *((float*)grid->_maxDataValue) = max;
+	*((float*)grid->_minDataValue) = min;
+	*((float*)grid->_meanDataValue) = mean;
+
 }
