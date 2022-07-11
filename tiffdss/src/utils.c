@@ -5,14 +5,29 @@
 #include "utils.h"
 #include "zdssMessages.h"
 
+int opendss(long long *ifltab, const char *dssfile)
+{
+    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_INTERNAL_DIAG_1);
+    return zopen7(ifltab, dssfile);
+}
+
+int closedss(long long *ifltab)
+{
+    return zcloseInternal(ifltab, 0);
+}
+
 float maximum(float *arr, int n, float nodata)
 {
     float max = arr[0];
 
-    for (int i = 0; i < n; i++)
-    {
-        if (arr[i] > max && arr[i] != nodata)
-            max = arr[i];
+    for (int i = 0; i < n; i++){
+        if  (arr[i] != nodata)
+        {
+            if (arr[i] > max)
+            {
+                max = arr[i];
+            }
+        }
     }
     return max;
 }
@@ -21,25 +36,34 @@ float minimum(float *arr, int n, float nodata)
 {
     float min = arr[0];
 
-    for (int i = 0; i < n; i++)
-    {
-        if ((arr[i] < min) && (arr[i] != nodata))
-            min = arr[i];
-    }
+    for (int i = 0; i < n; i++){
+        if (arr[i] != nodata)
+        {
+            if (arr[i] < min)
+            {
+                min = arr[i];
+            }
+        }
+}
     return min;
 }
 
 float meanvalue(float *arr, int n, float nodata)
 {
-    float sum = 0;
     int count = 0;
+    float sum = 0;
+    float mean = 0;
     for (int i = 0; i < n; i++)
+    {    
         if (arr[i] != nodata)
-        {
-            sum += arr[i];
-            count++;
-        }
-    return sum / count;
+            {
+                sum += arr[i];
+                count++;
+            }
+    }
+    if (count > 0)
+        mean = sum / count;
+    return mean;
 }
 
 void filter_nodata(float *arr, int datasize, float nodata)
@@ -47,15 +71,16 @@ void filter_nodata(float *arr, int datasize, float nodata)
     for (int i = 0; i < datasize; i++)
     {
         if (arr[i] == nodata)
+        {
             arr[i] = UNDEFINED_FLOAT;
+        }
     }
 }
 
 void filter_zeros(float *arr, int datasize, const char *cpart)
 {
     char *found = strstr(cpart, "PRECIP");
-    if (found != NULL)
-    {
+    if (found != NULL){
         for (int i = 0; i < datasize; i++)
         {
             if (arr[i] == 0)

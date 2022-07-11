@@ -1,7 +1,6 @@
 #include <ctype.h>
-#include <math.h>
-#include <unistd.h>
 #include <gdal.h>
+#include <math.h>
 #include <cpl_string.h>
 #include <cpl_conv.h> /* for CPLMalloc() */
 
@@ -10,17 +9,117 @@
 
 #include "utils.h"
 
-int writeRecord(long long *ifltab, char *tiff, char *dssfile, char *dsspath,
+int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
+{
+    int i, n, status;
+    float min = 0;
+    float max = 0;
+    float mean = 0;
+
+    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_NONE);
+
+    // long long ifltab[250];
+    // memset(ifltab, 0 , 250 * sizeof(long long));
+    long long *ifltab = calloc(250, sizeof(long long) * 250);
+
+    n = gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY;
+
+    min = minimum(data, n, gridStructStore->_nullValue);
+    max = maximum(data, n, gridStructStore->_nullValue);
+    mean = meanvalue(data, n, gridStructStore->_nullValue);
+
+    float range = max - min;
+    // printf("Data range: %f\n", range);
+
+    int bins = 5;
+    if (range == 0)
+        bins = 2;
+
+    static float *rangelimit;
+    static int *histo;
+    rangelimit = calloc(bins, sizeof(float));
+    histo = calloc(bins, sizeof(float));
+
+    float step = (float)range / bins;
+    // printf("Data step: %f\n", step);
+
+    rangelimit[0] = UNDEFINED_FLOAT;
+    rangelimit[1] = min;
+    if (step != 0)
+    {
+        rangelimit[2] = min + step * 2;
+        rangelimit[3] = min + step * 3;
+        rangelimit[4] = max;
+    }
+    // Exceedance
+    for (int idx = 0; idx < n; idx++)
+    {
+        for (int jdx = 0; jdx < bins; jdx++)
+        {
+            if (data[idx] >= rangelimit[jdx])
+                histo[jdx]++;
+        }
+    }
+
+    // reversing the array values rotates it 180
+    reverse_array(data, n);
+    // reverse each row to flip <--> 180
+    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
+
+    zStructSpatialGrid *spatialGridStruct = zstructSpatialGridNew(gridStructStore->pathname);
+
+    spatialGridStruct->_type = gridStructStore->_type;
+    spatialGridStruct->_version = gridStructStore->_version;
+    spatialGridStruct->_dataUnits = gridStructStore->_dataUnits;
+    spatialGridStruct->_dataType = gridStructStore->_dataType;
+    spatialGridStruct->_dataSource = gridStructStore->_dataSource;
+    spatialGridStruct->_lowerLeftCellX = gridStructStore->_lowerLeftCellX;
+    spatialGridStruct->_lowerLeftCellY = gridStructStore->_lowerLeftCellY;
+    spatialGridStruct->_numberOfCellsX = gridStructStore->_numberOfCellsX;
+    spatialGridStruct->_numberOfCellsY = gridStructStore->_numberOfCellsY;
+    spatialGridStruct->_cellSize = gridStructStore->_cellSize;
+    spatialGridStruct->_compressionMethod = gridStructStore->_compressionMethod;
+
+    spatialGridStruct->_rangeLimitTable = &(rangelimit[0]);
+    spatialGridStruct->_numberEqualOrExceedingRangeLimit = &(histo[0]);
+    spatialGridStruct->_numberOfRanges = bins;
+
+    spatialGridStruct->_srsDefinitionType = gridStructStore->_srsDefinitionType;
+    spatialGridStruct->_srsName = gridStructStore->_srsName;
+    spatialGridStruct->_srsDefinition = gridStructStore->_srsDefinition;
+    spatialGridStruct->_xCoordOfGridCellZero = gridStructStore->_xCoordOfGridCellZero;
+    spatialGridStruct->_yCoordOfGridCellZero = gridStructStore->_yCoordOfGridCellZero;
+    spatialGridStruct->_nullValue = gridStructStore->_nullValue;
+    spatialGridStruct->_timeZoneID = gridStructStore->_timeZoneID;
+    spatialGridStruct->_timeZoneRawOffset = gridStructStore->_timeZoneRawOffset;
+    spatialGridStruct->_isInterval = gridStructStore->_isInterval;
+    spatialGridStruct->_isTimeStamped = gridStructStore->_isTimeStamped;
+
+    spatialGridStruct->_maxDataValue = &max;
+    spatialGridStruct->_minDataValue = &min;
+    spatialGridStruct->_meanDataValue = &mean;
+    spatialGridStruct->_data = data;
+
+    status = zopen7(ifltab, dssfilename);
+    status = zspatialGridStore(ifltab, spatialGridStruct);
+    status = zclose(ifltab);
+
+    free(rangelimit);
+    free(histo);
+
+    free(ifltab);
+
+    zstructFree(spatialGridStruct);
+    zstructFree(gridStructStore);
+
+    return status;
+}
+
+int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, char *dssfile, char *dsspath,
                 char *gridType, int dss_grid_type, char *gridDef, char *dataType,
                 int dss_data_type, char *units, char *tzname, int tzoffset,
                 int compression_method, int timestamped, float nodata)
 {
-    int status;
-    float _min = 0;
-    float _max = 0;
-    float _mean = 0;
-    float range;
-
     // see if the record is_interval
     int interval = 0;
     char pathPart[65];
@@ -38,20 +137,12 @@ int writeRecord(long long *ifltab, char *tiff, char *dssfile, char *dsspath,
     // get the raster geotransform
     double adfGeoTransform[6];
     GDALGetGeoTransform(hDataset, adfGeoTransform);
-    // if (GDALGetGeoTransform(hDataset, adfGeoTransform) == CE_None)
-    // {
-    //     printf("Origin = (%.6f,%.6f); ",
-    //            adfGeoTransform[0], adfGeoTransform[3]);
-    //     printf("Pixel Size = (%.6f,%.6f)\n",
-    //            adfGeoTransform[1], adfGeoTransform[5]);
-    // }
 
     // get the tiff shape
     int xsize = GDALGetRasterXSize(hDataset);
     int ysize = GDALGetRasterYSize(hDataset);
     int dataSize = xsize * ysize;
     float cellsize = adfGeoTransform[1];
-    // printf("Xsize: %d\nYsize: %d\nData Size:%d\n", xsize, ysize, dataSize);
 
     // get raster band 1
     GDALRasterBandH raster = GDALGetRasterBand(hDataset, 1);
@@ -65,54 +156,8 @@ int writeRecord(long long *ifltab, char *tiff, char *dssfile, char *dsspath,
     float *data = (float *)CPLMalloc(sizeof(float) * dataSize);
     GDALRasterIO(raster, GF_Read, 0, 0, xsize, ysize, data, xsize, ysize, GDT_Float32, 0, 0);
 
-    // reversing the array values rotates it 180
-    reverse_array(data, dataSize);
-    // reverse each row to flip <--> 180
-    reverse_rows(data, xsize, dataSize);
-    // nodata -> UNDEFINED
-    filter_nodata(data, dataSize, nodata);
-
-    // statistics
-    _min = minimum(data, dataSize, nodata);
-    _max = maximum(data, dataSize, nodata);
-    _mean = meanvalue(data, dataSize, nodata);
-    // printf("Min: %f Max: %f Mean: %f NoData: %f\n", _min, _max, _mean, nodata);
-
-    // histogram
-    range = _max - _min;
-    // printf("Data range: %f\n", range);
-
-    int bins = 5;
-    if (range == 0)
-        bins = 1;
-
-    static float *rangelimit;
-    static int *histo;
-    rangelimit = calloc(bins, sizeof(float));
-    histo = calloc(bins, sizeof(float));
-
-    float step = (float)range / bins;
-    // printf("Data step: %f\n", step);
-
-    rangelimit[0] = UNDEFINED_FLOAT;
-    rangelimit[1] = _min;
-    if (step != 0)
-    {
-        rangelimit[2] = _min + step * 2;
-        rangelimit[3] = _min + step * 3;
-        rangelimit[4] = _max;
-    }
-    for (int idx = 0; idx < dataSize; idx++)
-    {
-        for (int jdx = 0; jdx < bins; jdx++)
-        {
-            if (data[idx] >= rangelimit[jdx])
-                histo[jdx]++;
-        }
-    }
 
     // Spatial Grid Struct
-    zStructSpatialGrid *gridStructStore = zstructSpatialGridNew(dsspath);
     gridStructStore->_type = dss_grid_type;
     gridStructStore->_dataSource = "INTERNAL";
     gridStructStore->_version = 1;
@@ -125,10 +170,6 @@ int writeRecord(long long *ifltab, char *tiff, char *dssfile, char *dsspath,
     gridStructStore->_cellSize = cellsize;
     gridStructStore->_compressionMethod = compression_method;
 
-    gridStructStore->_rangeLimitTable = &rangelimit[0];
-    gridStructStore->_numberEqualOrExceedingRangeLimit = &histo[0];
-    gridStructStore->_numberOfRanges = bins;
-
     gridStructStore->_srsDefinitionType = 1;
     gridStructStore->_srsName = gridType;
     gridStructStore->_srsDefinition = gridDef;
@@ -139,26 +180,11 @@ int writeRecord(long long *ifltab, char *tiff, char *dssfile, char *dsspath,
     gridStructStore->_timeZoneRawOffset = tzoffset;
     gridStructStore->_isInterval = interval;
     gridStructStore->_isTimeStamped = timestamped;
+    gridStructStore->_data = data;
 
-    gridStructStore->_minDataValue = &_min;
-    gridStructStore->_maxDataValue = &_max;
-    gridStructStore->_meanDataValue = &_mean;
-
-    if (data != NULL)
-    {
-        gridStructStore->_data = data;
-        status = zspatialGridStore(ifltab, gridStructStore);
-    }
-
-    GDALClose(hDataset);
-    CPLFree(data);
-
-    free(rangelimit);
-    free(histo);
-    zstructFree(gridStructStore);
-
-    return status;
+    return 0;
 }
+
 
 void printUsage(char *name)
 {
@@ -168,13 +194,13 @@ void printUsage(char *name)
            "\t-g: DSS grid type; HRAP | ALBERS | SHG | SPECIFIED_GRID_TYPE | UTM (default: ALBERS)\n"
            "\t-h: Hemisphere N or S; use with -g UTM (default: N)\n"
            "\t-n: Time zone name (default: GMT)\n"
-           "\t-l: zsetMessageLevel (default: 0 (None))"
+           "\t-l: zsetMessageLevel (default: 0 (None))\n"
            "\t-m: No data value (default: 9999)\n"
            "\t-p: DSS pathname\n"
            "\t-s: DSS grid record time stamped; 0 | 1 (default: 1)\n"
            "\t-u: DSS grid record units (default: MM)\n"
            "\t-z: UTM Zone 1-60; use with -g UTM\n"
-           "input_Tiff output_DSS",
+           "<input_Tiff> <output_DSS>\n",
            name);
     exit(0);
 }
@@ -314,24 +340,27 @@ int main(int argc, char *argv[])
     dssfile = argv[argc - 1];
     printf("DSS file: %s\n", dssfile);
 
-    // write record
-    long long *ifltab = calloc(250, sizeof(long long) * 250);
+    // Create a SpatialGridStruct and populate
+    zStructSpatialGrid *gridStructStore = zstructSpatialGridNew(dsspath);
 
-    status = zopen7(ifltab, dssfile);
-    if (status != STATUS_OKAY)
-    {
-        printf("Zopen Status: %d\n", status);
-        return -1;
-    }
-    status = writeRecord(ifltab, tiff, dssfile, dsspath, gridType, dss_grid_type,
+    status = zStructSpatialGridDefine(gridStructStore, tiff, dssfile, dsspath, gridType, dss_grid_type,
                          gridDef, dataType, dss_data_type, units, tzname, tzoffset,
                          compression_method, timestamped, nodata);
+
+    if (status != STATUS_OKAY)
+    {
+        printf("Spatial Grid Struct Error: %d\n", status);
+        return -1;
+    }
+
+    // Write to DSS record
+    status = writeRecord(dssfile, gridStructStore, gridStructStore->_data);
+
     if (status != STATUS_OKAY)
     {
         printf("Write Record: %d\n", status);
         return -1;
     }
 
-    zclose(ifltab);
     return 1;
 }
