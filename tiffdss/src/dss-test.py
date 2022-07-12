@@ -16,7 +16,7 @@ def convertDSS7ToDss6(dss6,dss7):
 def tiffToDss7(test):
 
     args=["/app/tiffdss/src/tiffdss"]
-    args=args+test.tiff_dss_args
+    args=args+test["tiff_dss_args"]
     CompletedProcess = subprocess.run(args)
     print(CompletedProcess.stdout)
     return CompletedProcess.returncode
@@ -26,8 +26,8 @@ def checkResults(test):
     print("checking")
 
 def runTest(test):
-    dss6=test.name+"6.dss"
-    dss7=test.name+".dss"
+    dss6=test["name"]+"6.dss"
+    dss7=test["name"]+".dss"
     status = tiffToDss7(test)
     if status !=0:
         print("Error creating "+dss7)
