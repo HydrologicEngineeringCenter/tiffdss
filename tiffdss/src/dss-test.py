@@ -1,46 +1,56 @@
 import sys
 import subprocess
+import unittest
+from hec.heclib.dss import  HecDSSFileAccess
+from dss_test_utility import compare_grids
+
 from hec.heclib.util import Heclib
 from hec.heclib.dss import HecDss, DSSPathname, HecDataManager,HecDSSUtilities
 
 
 def convertDSS7ToDss6(dss6,dss7):
     u = HecDSSUtilities()
+    #HecDSSFileAccess.setMessageLevel(15)
     u.setDSSFileName(dss7)
     status = u.convertVersion(dss6)
     u.close()
     if status != 0:
-        print("error convertind from DSS7 to DSS6 ")
+        raise Exception("error converting from DSS7 to DSS6 ")
+        
 
 # create DSS 7 file
 def tiffToDss7(test):
+    dss7=test["name"]+"7.dss"
 
-    args=["/app/tiffdss/src/tiffdss"]
-    args=args+test["tiff_dss_args"]
-    CompletedProcess = subprocess.run(args)
-    print(CompletedProcess.stdout)
-    return CompletedProcess.returncode
+    args=["/app/tiffdss/src/tiffdss",test["tiff_dss_args"], test["tiffFile"],dss7]
 
+    print(" ".join(args))
+    cmd = " ".join(args)
+    proc = subprocess.Popen(cmd ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, shell=True)
+    out = str(proc.communicate(proc.stdout))
+    print(out)
 
 def checkResults(test):
-    print("checking")
-
-def runTest(test):
     dss6=test["name"]+"6.dss"
-    dss7=test["name"]+".dss"
-    status = tiffToDss7(test)
-    if status !=0:
-        print("Error creating "+dss7)
-    convertDSS7ToDss6(test)
-    checkResults(test)
+    dss7=test["name"]+"7.dss"
+    compare_grids(dss7,dss6,test["dssPath"])
 
-runTest({
+def runTest():
+    test ={
     "name": "simple",
     "dssPath" : "//grid-test/PRECIP/01FEB2022:0100/01FEB2022:0200/SHG-Default/",
     "tiffFile":"/app/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-170000.tif",
-    "tiff_dss_args":["-d INST-CUM"],
-    "expected": {"min":1.0, "max":3.4, "avg":6.0}
-})
+    "tiff_dss_args":"-d INST-CUM -p '//grid-test/PRECIP/01FEB2022:0100/01FEB2022:0200/SHG-Default/'"
+    }
+    dss6=test["name"]+"6.dss"
+    dss7=test["name"]+"7.dss"
+    status = tiffToDss7(test)
+    if status !=0:
+        print("Error creating "+dss7)
+    convertDSS7ToDss6(dss6,dss7)
+    checkResults(test)
+
+unittest.TestCase(methodName='runTest')
 
 
 #Usage: ./tiffdss  -p [-c] [-d] [-g] [-h] [-m] [-n] [-s] [-u] 
