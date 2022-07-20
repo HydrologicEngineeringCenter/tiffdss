@@ -5,11 +5,8 @@ from hec.heclib.dss import HecDSSFileAccess
 from jarray import zeros
 
 from hec.lang import DSSPathString
-import unittest
-
-class DssTestUtility(unittest.TestCase):
-    def runTest(self):
-        self.assertEqual
+from unittest import TestCase
+# // TO DO. make static assertIntEquals(...  )  assertStringEquals..... etc...
 
 def ReadGrid(dssFile, path):
     status = zeros(1,'i')
@@ -30,8 +27,7 @@ def compare_grids(dssFile1, dssFile2, path):
         info1 = gd1.getGridInfo()
         info2 = gd2.getGridInfo()
 
-        t = TestCase()
-        t.assertEqual(info1.getGridType(), info2.getGridType(), "getGridType() " + path)
+        TestCase.assertEqual(info1.getGridType(), info2.getGridType(), "getGridType() " + path)
         TestCase.assertEqual(info1.getDataUnits(), info2.getDataUnits(), "getDataUnits" + path)
         TestCase.assertEqual(info1.getDataTypeName(), info2.getDataTypeName(), "getDataTypeName" + path)
         dssPath = DSSPathString(path)
