@@ -4,3 +4,6 @@
 [submodule "dss-test-data"]
 	path = dss-test-data
 	url = https://github.com/HydrologicEngineeringCenter/dss-test-data.git
+[submodule "hec-dssvue-linux"]
+	path = hec-dssvue-linux
+	url = https://github.com/HydrologicEngineeringCenter/hec-dssvue-linux.git
