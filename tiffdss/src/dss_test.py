@@ -1,13 +1,12 @@
 import sys
 import subprocess
-import unittest
 from hec.heclib.dss import  HecDSSFileAccess
 from dss_test_utility import compare_grids
 
 from hec.heclib.util import Heclib
 from hec.heclib.dss import HecDss, DSSPathname, HecDataManager,HecDSSUtilities
 
-class dss_test(unittest.TestCase):
+class dss_test():
 
     @staticmethod
     def convertDSS7ToDss6(dss6,dss7):
@@ -53,9 +52,11 @@ class dss_test(unittest.TestCase):
             print("Error creating "+dss7)
         dss_test.convertDSS7ToDss6(dss6,dss7)
         dss_test.checkResults(test)
+        print("done testing")
 
-if __name__ == '__main__':
-    unittest.main()
+t = dss_test()
+t.testSimple()
+
 
 
 #Usage: ./tiffdss  -p [-c] [-d] [-g] [-h] [-m] [-n] [-s] [-u] 
