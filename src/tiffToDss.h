@@ -1,1 +1,0 @@
-int tiff2dss(const char *filename, const char *dssPath, float *data, int data_size, int cols, int rows);
