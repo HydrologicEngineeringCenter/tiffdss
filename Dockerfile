@@ -42,4 +42,4 @@ RUN bash /app/tiffdss/src/make.sh
 # USER appuser
 
 # keep the container running
-CMD [ "/app/tiffdss/tests/dss-test.sh" ]
+CMD [ "" ]
