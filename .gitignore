@@ -1,2 +1,2 @@
 *.o
-tiffdss/src/tiffdss
+**/src/tiffdss
