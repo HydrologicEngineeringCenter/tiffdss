@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/../hec-dss/**",
-                "/usr/local/Cellar/gdal/"
+                "/usr/local/Cellar/gdal/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

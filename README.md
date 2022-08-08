@@ -1,52 +1,112 @@
+# Convert GeoTiff to DSS Grid Record
 
-## DSS utilities within Docker.
+This repository contains a utility to read a GeoTiff (single band) and write the data to a DSS grid record.
 
-This projects first goal is to convert a GeoTIFF to a DSS record.
+# Local Development
 
-clone with 
-```bash
-git clone https://github.com/HydrologicEngineeringCenter/dss-container.git
-git submodule update --init --recursive
-```
-
-
-Design expressed below as a feature list by example:
-
-
-```bash
-# import geotiff file into a DSS grid record
-docker run -v $(pwd):/data hec/dss tiff2dss /data/test.tif data/test.dss  "/GRID/RECORD/DATA/01jan2019:1200/01jan2019:1300/Ex10a/" --data-type PER-AVER --grid-type specified --wkt="..."
-
-# convert from dss version 7 to dss version 6
-docker run -v $(pwd):/data hec/dss convert-version  data/input-test6.dss   data/output-test7.dss
-
-# print catalog of a dss file
-docker run -v $(pwd):/data hec/dss print-catalog data/test.dss  
-
-#print data-set inside a dss file to the console
-docker run -v $(pwd):/data hec/dss print-dataset data/test.dss  "//SACRAMENTO/PRECIP-INC/01Jan1877/1Day/OBS/"
+## Start the Container
 
 ```
+> ./docker_run.sh
+```
 
+Dockerfile uses `entrypoint` and `CMD` arguments:
+- integration
+- unit
+- run
 
-## Build container for development
+`integration` and `unit` run those tests, and `run` keeps the container running.  Arguments can be used in any combination.
 
-docker build . -t karl-dev
+## Build tiffdss
 
+With an interactive container session
 
-## run developer container with pwd mounted under /code
+```
+> bash /app/tiffdss/src/make.sh
+```
 
-docker run -it -v$(pwd):/code:z karl-dev
+# Usage: tiffdsss binary
 
-# some gdal examples
+```
+tiffdss -p [-c] [-d] [-g] [-h] [-m] [-n] [-s] [-u] <input_Tiff> <output_DSS>
+```
 
- docker run --rm -v $PWD:/karl osgeo/gdal:alpine-small-latest gdal_translate -of AAIGrid karl/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-190000.tif   karl/a.txt
+## Options
 
-docker run --rm -v $PWD:/karl osgeo/gdal:alpine-small-latest gdalinfo  karl/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-190000.tif  
+```
+-c [UNDEFINED_COMPRESSION_METHOD | ZLIB_COMPRESSION]
+    DSS compression method;  or  (default: ZLIB_COMPRESSION)
 
+-d [PER-AVER | PER-CUM | INST-VAL | INST-CUM]
+    DSS data type; (default: PER-AVER)
 
-# references
+-g [HRAP | ALBERS | SHG | SPECIFIED_GRID_TYPE | UTM]
+    DSS grid type; (default: ALBERS)
 
-https://github.com/USACE/pydsstools/blob/testing/2.1.1/tests/test1.py
+-h [N | S]
+    Hemisphere N or S; use with -g UTM (default: N)
 
-https://github.com/USACE/cumulus-api/blob/stable/async_packager/packager/writers/dss7.py
+-n
+    Time zone name (default: GMT)
+
+-l
+    zsetMessageLevel (default: 0 (None))
+
+-m
+    No data value (default: 9999)
+
+-p "/a/b/c/d/e/f/"
+    DSS pathname
+
+-s [0 | 1]
+    DSS grid record time stamped; (default: 1)
+
+-u
+    DSS grid record units (default: MM)
+
+-z
+    UTM Zone 1-60; use with -g UTM
+```
+
+## Python Unit Testing
+
+### Integration Test
+1. Converting GeoTiff(s) in `tests/integration/fixtures` to DSS7
+2. Converting the DSS7 file to DSS6
+3. GridInfo differences between DSS7/DSS6
+
+### fixtures JSON setup:
+
+This example will test each GeoTiff in the `fixtures/mrms` directory.  Each of the attributes must correspond to the GeoTiff metadata.
+
+test_products.json
+```json
+{
+    "mrms": {
+        "apart": "",
+        "bpart": "mrms",
+        "cpart": "precip",
+        "fpart": "qpe",
+        "data_type": "per-cum",
+        "data_unit": "mm",
+        "data_interval": 3600
+    },
+    "hrrr": {
+        "apart": "",
+        "bpart": "hrrr",
+        "cpart": "precip",
+        "fpart": "qpe",
+        "data_type": "inst-val",
+        "data_unit": "mm",
+        "data_interval": 3600
+    }
+}
+```
+
+### Unit Test
+1. `libtiffdss.so` C function testing
+2. Numpy arrays (zeros, ones, random, and missing) generated
+3. Numpy array statistics (min, max, and mean) compared to shared object statistics
+
+Unit testing against the `libtiffdss.so` shared object uses Python `ctypes` module.  The shared object is moved to `/usr/lib` during the build process to simplify loading the library.
+

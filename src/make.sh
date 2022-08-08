@@ -5,7 +5,7 @@ cd $(dirname $0)
 
 # clean and build tiffdss
 make clean
-# make tiffdss
+make tiffdss
 make libtiffdss.so
 
 mv -f /app/tiffdss/src/libtiffdss.so /usr/lib/

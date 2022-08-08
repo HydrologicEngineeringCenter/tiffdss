@@ -21,13 +21,11 @@ RUN apt-get -y update && \
     apt-get install -y git gcc gfortran python3-pip libffi-dev gdb && \
     rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/tiffdss
-
-COPY ./tiffdss /app/tiffdss/
-
 RUN git clone --depth 1 https://github.com/HydrologicEngineeringCenter/hec-dssvue-linux.git
 
-RUN git clone --depth 1 https://github.com/jeffsuperglide/gribdownload.git
+RUN mkdir -p /app/tiffdss
+
+COPY . /app/tiffdss/
 
 WORKDIR /app/tiffdss
 
@@ -36,10 +34,13 @@ COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_c/Output/libhec_c.
 COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_f/Output/libhec_f.a /usr/lib
 COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_c/src/headers /hec-dss/heclib/heclib_c/src/headers
 
-RUN bash /app/tiffdss/src/make.sh
+# Makes sure the make.sh is +x and run it
+RUN chmod +x /app/tiffdss/src/make.sh && \
+    /app/tiffdss/src/make.sh
 
+ENTRYPOINT [ "/app/tiffdss/entrypoint.sh" ]
 # RUN useradd appuser
 # USER appuser
 
-# keep the container running
-CMD [ "" ]
+# "integration", "unit", and/or "run" for testing
+CMD [ "integration", "unit" ]
