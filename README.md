@@ -22,7 +22,7 @@ Dockerfile uses `entrypoint` and `CMD` arguments:
 With an interactive container session
 
 ```
-> bash /app/tiffdss/src/make.sh
+> /app/tiffdss/src/make.sh
 ```
 
 # Usage: tiffdsss binary
