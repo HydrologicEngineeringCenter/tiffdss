@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/../hec-dss/**",
                 "/usr/local/Cellar/gdal/"
             ],
             "defines": [],

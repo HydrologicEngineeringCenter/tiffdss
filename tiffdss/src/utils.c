@@ -16,16 +16,15 @@ int closedss(long long *ifltab)
     return zcloseInternal(ifltab, 0);
 }
 
-float roundValue(float var)
+float roundValue(float var, int precision)
 {
-    int precision = 100;
     float value = (int)(var * precision + 0.5);
-    return (float)value / precision;
+    return (float)value * precision;
 }
 
 float maximum(float *arr, int n, float nodata)
 {
-    float max;
+    float max = -2.0E38F;
 
     for (int i = 0; i < n; i++)
     {
@@ -38,7 +37,7 @@ float maximum(float *arr, int n, float nodata)
 
 float minimum(float *arr, int n, float nodata)
 {
-    float min;
+    float min = 2.0E38F;
 
     for (int i = 0; i < n; i++)
     {
@@ -53,7 +52,7 @@ float meanvalue(float *arr, int n, float nodata)
 {
     int count = 0;
     float sum = 0;
-    float mean = 0;
+    float mean = UNDEFINED_FLOAT;
 
     for (int i = 0; i < n; i++)
     {

@@ -1,0 +1,65 @@
+{
+    "hrrr": {
+        "apart": "",
+        "bpart": "hrrr",
+        "cpart": "precip",
+        "fpart": "qpf",
+        "data_type": "inst-val",
+        "data_unit": "mm",
+        "data_interval": 3600
+    },
+    "mrms": {
+        "apart": "",
+        "bpart": "mrms",
+        "cpart": "precip",
+        "fpart": "qpe",
+        "data_type": "inst-val",
+        "data_unit": "mm",
+        "data_interval": 3600
+    },
+    "nbm-air": {
+        "apart": "",
+        "bpart": "nbm",
+        "cpart": "airtemp",
+        "fpart": "qte",
+        "data_type": "inst-val",
+        "data_unit": "degC",
+        "data_interval": 3600
+    },
+    "nbm-precip": {
+        "apart": "",
+        "bpart": "nbm",
+        "cpart": "precip",
+        "fpart": "qpe",
+        "data_type": "inst-val",
+        "data_unit": "mm",
+        "data_interval": 3600
+    },
+    "ndgd-air": {
+        "apart": "",
+        "bpart": "ndgd",
+        "cpart": "airtemp",
+        "fpart": "qte",
+        "data_type": "inst-val",
+        "data_unit": "degC",
+        "data_interval": 3600
+    },
+    "ndgd-precip": {
+        "apart": "",
+        "bpart": "ndgd",
+        "cpart": "precip",
+        "fpart": "qpe",
+        "data_type": "inst-val",
+        "data_unit": "mm",
+        "data_interval": 3600
+    },
+    "wpc": {
+        "apart": "",
+        "bpart": "wpc",
+        "cpart": "precip",
+        "fpart": "qpf",
+        "data_type": "per-cum",
+        "data_unit": "mm",
+        "data_interval": 21600
+    }
+}

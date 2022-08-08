@@ -1,0 +1,11 @@
+{
+    "mrms": {
+        "apart": "",
+        "bpart": "mrms",
+        "cpart": "precip",
+        "fpart": "qpe",
+        "data_type": "inst-val",
+        "data_unit": "mm",
+        "data_interval": 3600
+    }
+}
