@@ -28,4 +28,4 @@ char *dssGridDef(int gtype);
 
 char *utmGridDef(int zone, char *utmHemi);
 
-float roundValue(float var);
+float roundValue(float var, int precision);

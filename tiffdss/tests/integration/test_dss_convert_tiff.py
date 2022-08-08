@@ -89,6 +89,7 @@ class TestDssConvert(unittest.TestCase):
                             "-d {}".format(attr["data_type"].upper()),
                             "-u {}".format(attr["data_unit"].upper()),
                             "-p '{}'".format(dsspath),
+                            "-m -999",
                         )
                         nrecords += 1
         file_access = HecDSSFileAccess(self.dss7)

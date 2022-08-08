@@ -5,7 +5,8 @@ cd $(dirname $0)
 
 # clean and build tiffdss
 make clean
-make tiffdss
+# make tiffdss
+make libtiffdss.so
 
-mv -f ./libtiffdss.so /usr/lib/
+mv -f /app/tiffdss/src/libtiffdss.so /usr/lib/
 printf "libtiffdss.so moved to /usr/lib/\n"

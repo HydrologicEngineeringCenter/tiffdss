@@ -1,7 +1,15 @@
-from audioop import avg
 import unittest
-from ctypes import (CDLL, POINTER, LibraryLoader, Structure, c_char_p, c_float,
-                    c_int, c_void_p, pointer)
+from ctypes import (
+    CDLL,
+    POINTER,
+    LibraryLoader,
+    Structure,
+    c_char_p,
+    c_float,
+    c_int,
+    c_void_p,
+    pointer,
+)
 
 import numpy as np
 
@@ -13,6 +21,7 @@ PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],\
 PARAMETER["Central_Meridian",-96.0],PARAMETER["Standard_Parallel_1",29.5],\
 PARAMETER["Standard_Parallel_2",45.5],PARAMETER["Latitude_Of_Origin",23.0],\
 UNIT["Meter",1.0]]'
+
 
 class zStructSpatialGrid(Structure):
     _fields_ = [
@@ -52,34 +61,42 @@ class zStructSpatialGrid(Structure):
         ("_data", c_void_p),
     ]
 
+
 # libtiffdss.so is compiled and put in /usr/lib during image creation
 tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
 
-def get_maximum_value(data: np, nodata: float = 0):
+
+def get_maximum_value(data: np, datasize: int, nodata: float = 0):
     ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
     tiffdss.maximum.argtypes = (
         ND_POINTER_1,
+        c_int,
         c_float,
     )
     tiffdss.maximum.restype = c_float
     max_value = tiffdss.maximum(
         data,
+        datasize,
         nodata,
     )
     return max_value
 
-def get_minimum_value(data: np, nodata: float = 0):
+
+def get_minimum_value(data: np, datasize: int, nodata: float = 0):
     ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
     tiffdss.minimum.argtypes = (
         ND_POINTER_1,
+        c_int,
         c_float,
     )
     tiffdss.minimum.restype = c_float
     min_value = tiffdss.minimum(
         data,
+        datasize,
         nodata,
     )
     return min_value
+
 
 def get_meanvalue_value(data: np, datasize: int, nodata: float = 0):
     ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
@@ -95,6 +112,10 @@ def get_meanvalue_value(data: np, datasize: int, nodata: float = 0):
         nodata,
     )
     return mean_value
+
+
+def within_precision(a, b, p):
+    return abs(a - b) < (1 / pow(10, p))
 
 
 def zwrite_record(
@@ -133,6 +154,7 @@ def zwrite_record(
         data_flat,
     )
 
+
 class TestGenDss(unittest.TestCase):
     def setUp(self):
         self.ot = "Float32"
@@ -142,12 +164,17 @@ class TestGenDss(unittest.TestCase):
         self.ymin = 182000
         self.xmax = 2112000
         self.ymax = 2058000
-    
+
         self.nrows = int((self.ymax - self.ymin) / self.cellsize)
         self.ncols = int((self.xmax - self.xmin) / self.cellsize)
 
+        self.nodata = -999
+        self.precision = 5
+
         self.spatialGridStruct = zStructSpatialGrid()
-        self.spatialGridStruct.pathname = c_char_p(str.encode("/a/b/c/01JAN2000:0000/01JAN2000:0100/f/"))
+        self.spatialGridStruct.pathname = c_char_p(
+            str.encode("/a/b/c/01JAN2000:0000/01JAN2000:0100/f/")
+        )
         self.spatialGridStruct._structVersion = c_int(-100)
         self.spatialGridStruct._type = c_int(1)
         self.spatialGridStruct._version = c_int(1)
@@ -171,60 +198,150 @@ class TestGenDss(unittest.TestCase):
         self.spatialGridStruct._isInterval = c_int(1)
         self.spatialGridStruct._isTimeStamped = c_int(1)
 
-
-
     def tearDown(self):
         pass
 
-    def test_zeros(self):
+    def test_zeros_min(self):
         a = np.zeros((100, 100), np.float32)
         aflat = a.flatten()
 
-        min_val = get_minimum_value(aflat)
-        max_val = get_maximum_value(aflat)
-        mean_val = get_meanvalue_value(aflat, len(aflat))
+        precision = 5
 
-        self.assertEqual(min_val, np.min(a), "Minimum value not equal")
-        self.assertEqual(max_val, np.max(a), "Maximum value not equal")
-        self.assertEqual(mean_val, np.mean(a), "Mean value not equal")
+        min_val = round(get_minimum_value(aflat, len(aflat), self.nodata), precision)
+        np_min = round(np.min(a), precision)
+        min_precision = within_precision(np_min, min_val, precision)
+        self.assertTrue(min_precision, "Minimum value not equal")
 
-    def test_ones(self):
+    def test_zeros_max(self):
+        a = np.zeros((100, 100), np.float32)
+        aflat = a.flatten()
+
+        precision = 5
+
+        max_val = round(get_maximum_value(aflat, len(aflat), self.nodata), precision)
+        np_max = round(np.max(a), precision)
+        max_precision = within_precision(np_max, max_val, precision)
+        self.assertTrue(max_precision, "Maximum value not equal")
+
+    def test_zeros_mean(self):
+        a = np.zeros((100, 100), np.float32)
+        aflat = a.flatten()
+
+        precision = 5
+
+        mean_val = round(get_meanvalue_value(aflat, len(aflat), self.nodata), precision)
+        np_mean = round(np.mean(a), precision)
+        mean_precision = within_precision(np_mean, mean_val, precision)
+        self.assertTrue(mean_precision, "Mean value not equal")
+
+    def test_ones_min(self):
         a = np.ones((100, 100), np.float32)
         aflat = a.flatten()
 
-        min_val = get_minimum_value(aflat)
-        max_val = get_maximum_value(aflat)
-        mean_val = get_meanvalue_value(aflat, len(aflat))
+        precision = 5
 
-        self.assertEqual(min_val, np.min(a), "Minimum value not equal")
-        self.assertEqual(max_val, np.max(a), "Maximum value not equal")
-        self.assertEqual(mean_val, np.mean(a), "Mean value not equal")
+        min_val = round(get_minimum_value(aflat, len(aflat), self.nodata), precision)
+        np_min = round(np.min(a), precision)
+        min_precision = within_precision(np_min, min_val, precision)
+        self.assertTrue(min_precision, "Minimum value not equal")
 
+    def test_ones_max(self):
+        a = np.ones((100, 100), np.float32)
+        aflat = a.flatten()
 
-    def test_random(self):
+        precision = 5
+
+        max_val = round(get_maximum_value(aflat, len(aflat), self.nodata), precision)
+        np_max = round(np.max(a), precision)
+        max_precision = within_precision(np_max, max_val, precision)
+
+        self.assertTrue(max_precision, "Maximum value not equal")
+
+    def test_ones_mean(self):
+        a = np.ones((100, 100), np.float32)
+        aflat = a.flatten()
+
+        precision = 5
+
+        mean_val = round(get_meanvalue_value(aflat, len(aflat), self.nodata), precision)
+        np_mean = round(np.mean(a), precision)
+        mean_precision = within_precision(np_mean, mean_val, precision)
+
+        self.assertTrue(mean_precision, "Mean value not equal")
+
+    def test_random_min(self):
         a = np.random.rand(100, 100).astype(np.float32)
         aflat = a.flatten()
 
-        min_val = get_minimum_value(aflat)
-        max_val = get_maximum_value(aflat)
-        mean_val = get_meanvalue_value(aflat, len(aflat), -999)
+        precision = 5
 
-        self.assertEqual(min_val, np.min(a), "Minimum value not equal")
-        self.assertEqual(max_val, np.max(a), "Maximum value not equal")
-        self.assertEqual(mean_val, np.mean(a), "Mean value not equal")
+        min_val = round(get_minimum_value(aflat, len(aflat), self.nodata), precision)
+        np_min = round(np.min(a), precision)
+        min_precision = abs(np_min - min_val) < (1 / pow(10, precision))
+        
+        self.assertTrue(min_precision, "Minimum value not equal")
 
-    def test_missing(self):
-        a = np.ones(self.nrows, self.ncols)
-        a[a == 1] = -999
+    def test_random_max(self):
+        a = np.random.rand(100, 100).astype(np.float32)
         aflat = a.flatten()
 
-        min_val = get_minimum_value(aflat)
-        max_val = get_maximum_value(aflat)
-        mean_val = get_meanvalue_value(aflat, len(aflat), -999)
+        precision = 5
 
-        self.assertEqual(min_val, np.min(a), "Minimum value not equal")
-        self.assertEqual(max_val, np.max(a), "Maximum value not equal")
-        self.assertEqual(mean_val, np.mean(a), "Mean value not equal")
+        max_val = round(get_maximum_value(aflat, len(aflat), self.nodata), precision)
+        np_max = round(np.max(a), precision)
+        max_precision = abs(np_max - max_val) < (1 / pow(10, precision))
+
+        self.assertTrue(max_precision, "Maximum value not equal")
+
+    def test_random_mean(self):
+        a = np.random.rand(100, 100).astype(np.float32)
+        aflat = a.flatten()
+
+        precision = 5
+
+        mean_val = round(get_meanvalue_value(aflat, len(aflat), self.nodata), precision)
+        np_mean = round(np.mean(a), precision)
+        mean_precision = abs(np_mean - mean_val) < (1 / pow(10, precision))
+
+        self.assertTrue(mean_precision, "Mean value not equal")
+
+    def test_missing_min(self):
+        a = np.ones((100, 100), np.float32)
+        a[a == 1] = self.nodata
+        aflat = a.flatten()
+
+        precision = 5
+
+        min_val = round(get_minimum_value(aflat, len(aflat), self.nodata), precision)
+
+        self.assertEqual(min_val, 1.9999999360571385e38, "Minimum value not equal")
+
+    def test_missing_max(self):
+        a = np.ones((100, 100), np.float32)
+        a[a == 1] = self.nodata
+        aflat = a.flatten()
+
+        precision = 5
+
+        max_val = round(get_maximum_value(aflat, len(aflat), self.nodata), precision)
+
+        self.assertEqual(max_val, -1.9999999360571385e38, "Maximum value not equal")
+
+    def test_missing_mean(self):
+        a = np.ones((100, 100), np.float32)
+        a[a == 1] = self.nodata
+        aflat = a.flatten()
+
+        precision = 5
+
+        mean_val = round(get_meanvalue_value(aflat, len(aflat), self.nodata), precision)
+
+        self.assertEqual(mean_val, -3.4028234663852886e38, "Mean value not equal")
+
+    def test_filter_nodata(self):
+        a = np.ones((100, 100), np.float32)
+        aflat = a.flatten()
+        
 
 if __name__ == "__main__":
     unittest.main()

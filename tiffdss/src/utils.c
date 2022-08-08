@@ -16,11 +16,10 @@ int closedss(long long *ifltab)
     return zcloseInternal(ifltab, 0);
 }
 
-float roundValue(float var)
+float roundValue(float var, int precision)
 {
-    int precision = 100;
     float value = (int)(var * precision + 0.5);
-    return (float)value / precision;
+    return (float)value * precision;
 }
 
 float maximum(float *arr, int n, float nodata)
