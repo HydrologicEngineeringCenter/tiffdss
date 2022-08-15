@@ -43,4 +43,4 @@ ENTRYPOINT [ "/app/tiffdss/entrypoint.sh" ]
 # USER appuser
 
 # "integration", "unit", and/or "run" for testing
-CMD [ "integration", "unit" ]
+CMD [ "" ]

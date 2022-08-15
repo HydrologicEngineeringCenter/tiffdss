@@ -1,35 +1,39 @@
 #!/bin/bash
 # set -x
 
-KEEP_RUNNING=false
+usage(){ printf "\n$0 usage:\n\n" && grep " .*)\ #" $0; exit 0;}
+
+KEEP_ALIVE=false
 
 # remove temp dss files if they exist
 rm -f /tmp/*.dss
 
 for opt in "$@";do
-    printf "Option: $opt\n"
 
-    if [ "$opt" == "integration" ]; then
-        /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_tiff.py
-        /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_version.py
-        /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_grid_info.py
-    fi
-
-    if [ "$opt" == "unit" ]; then
-        python /app/tiffdss/tests/unit/test_libtiffdss_stats.py
-    fi
-
-    if [ "$opt" == "run" ]; then
-        KEEP_RUNNING=true
-    fi
+    case $opt in
+        integration) # Integration testing using hec-dssvue.sh
+            /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_tiff.py
+            /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_version.py
+            /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_grid_info.py
+            ;;
+        unit) # Unit testing the tiffdss shared object
+            python -m unittest discover -v -s /app/tiffdss/tests/unit/
+            ;;
+        run) # Keep the container alive
+            KEEP_ALIVE=true
+            ;;
+        * | help) # Print this message
+            usage
+            exit 1
+            ;;
+    esac
 done
 
 # Keep container running
 while :
 do
-    if [ "$KEEP_RUNNING" == "false" ]; then
+    if [ "$KEEP_ALIVE" == "false" ]; then
         exit
     fi
     sleep 10000
 done
-

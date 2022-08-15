@@ -66,6 +66,22 @@ class zStructSpatialGrid(Structure):
 tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
 
 
+def get_filter_nodata(data: np, datasize: int, nodata: float = 0):
+    ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
+    tiffdss.filter_nodata.argtypes = (
+        ND_POINTER_1,
+        c_int,
+        c_float,
+    )
+    tiffdss.filter_nodata.restype = c_void_p
+    tiffdss.filter_nodata(
+        data,
+        datasize,
+        nodata,
+    )
+    return
+
+
 def get_maximum_value(data: np, datasize: int, nodata: float = 0):
     ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
     tiffdss.maximum.argtypes = (
@@ -118,88 +134,88 @@ def within_precision(a, b, p):
     return abs(a - b) < (1 / pow(10, p))
 
 
-def zwrite_record(
-    dssfilename: str,
-    gridStructStore: zStructSpatialGrid,
-    data_flat: np,
-):
-    """Write the data array to DSS record using the 'writeRecord' C function
+# def zwrite_record(
+#     dssfilename: str,
+#     gridStructStore: zStructSpatialGrid,
+#     data_flat: np,
+# ):
+#     """Write the data array to DSS record using the 'writeRecord' C function
 
-    Parameters
-    ----------
-    dssfilename : str
-        DSS file name and path
-    gridStructStore : zStructSpatialGrid
-        ctypes structure
-    data_flat : numpy
-        1D numpy array
-    gridStats : GridStats
-        ctypes structure
+#     Parameters
+#     ----------
+#     dssfilename : str
+#         DSS file name and path
+#     gridStructStore : zStructSpatialGrid
+#         ctypes structure
+#     data_flat : numpy
+#         1D numpy array
+#     gridStats : GridStats
+#         ctypes structure
 
-    Returns
-    -------
-    int
-        Response from the C function
-    """
-    ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
-    tiffdss.writeRecord.argtypes = (
-        c_char_p,
-        POINTER(zStructSpatialGrid),
-        ND_POINTER_1,
-    )
-    tiffdss.writeRecord.restype = c_int
-    _ = tiffdss.writeRecord(
-        c_char_p(dssfilename.encode()),
-        pointer(gridStructStore),
-        data_flat,
-    )
+#     Returns
+#     -------
+#     int
+#         Response from the C function
+#     """
+#     ND_POINTER_1 = np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags="C")
+#     tiffdss.writeRecord.argtypes = (
+#         c_char_p,
+#         POINTER(zStructSpatialGrid),
+#         ND_POINTER_1,
+#     )
+#     tiffdss.writeRecord.restype = c_int
+#     _ = tiffdss.writeRecord(
+#         c_char_p(dssfilename.encode()),
+#         pointer(gridStructStore),
+#         data_flat,
+#     )
 
 
-class TestGenDss(unittest.TestCase):
+class TestArrayStats(unittest.TestCase):
     def setUp(self):
-        self.ot = "Float32"
-        self.of = "GTiff"
-        self.cellsize = 2000
-        self.xmin = 456000
-        self.ymin = 182000
-        self.xmax = 2112000
-        self.ymax = 2058000
+        # self.ot = "Float32"
+        # self.of = "GTiff"
+        # self.cellsize = 2000
+        # self.xmin = 456000
+        # self.ymin = 182000
+        # self.xmax = 2112000
+        # self.ymax = 2058000
 
-        self.nrows = int((self.ymax - self.ymin) / self.cellsize)
-        self.ncols = int((self.xmax - self.xmin) / self.cellsize)
+        # self.nrows = int((self.ymax - self.ymin) / self.cellsize)
+        # self.ncols = int((self.xmax - self.xmin) / self.cellsize)
 
         self.nodata = -999
         self.precision = 5
 
-        self.spatialGridStruct = zStructSpatialGrid()
-        self.spatialGridStruct.pathname = c_char_p(
-            str.encode("/a/b/c/01JAN2000:0000/01JAN2000:0100/f/")
-        )
-        self.spatialGridStruct._structVersion = c_int(-100)
-        self.spatialGridStruct._type = c_int(1)
-        self.spatialGridStruct._version = c_int(1)
-        self.spatialGridStruct._dataUnits = c_char_p(str.encode("MM"))
-        self.spatialGridStruct._dataType = c_int(2)
-        self.spatialGridStruct._dataSource = c_char_p("INTERNAL".encode())
-        self.spatialGridStruct._lowerLeftCellX = c_int(self.xmin)
-        self.spatialGridStruct._lowerLeftCellY = c_int(self.ymin)
-        self.spatialGridStruct._numberOfCellsX = c_int(self.ncols)
-        self.spatialGridStruct._numberOfCellsY = c_int(self.nrows)
-        self.spatialGridStruct._cellSize = c_float(self.cellsize)
-        self.spatialGridStruct._compressionMethod = c_int(26)
-        self.spatialGridStruct._srsName = c_char_p(str.encode("SHG"))
-        self.spatialGridStruct._srsDefinitionType = c_int(1)
-        self.spatialGridStruct._srsDefinition = c_char_p(SHG_SRC_DEFINITION.encode())
-        self.spatialGridStruct._xCoordOfGridCellZero = c_float(0)
-        self.spatialGridStruct._yCoordOfGridCellZero = c_float(0)
-        self.spatialGridStruct._nullValue = c_float(0)
-        self.spatialGridStruct._timeZoneID = c_char_p(str.encode("GMT"))
-        self.spatialGridStruct._timeZoneRawOffset = c_int(0)
-        self.spatialGridStruct._isInterval = c_int(1)
-        self.spatialGridStruct._isTimeStamped = c_int(1)
+        # self.spatialGridStruct = zStructSpatialGrid()
+        # self.spatialGridStruct.pathname = c_char_p(
+        #     str.encode("/a/b/c/01JAN2000:0000/01JAN2000:0100/f/")
+        # )
+        # self.spatialGridStruct._structVersion = c_int(-100)
+        # self.spatialGridStruct._type = c_int(1)
+        # self.spatialGridStruct._version = c_int(1)
+        # self.spatialGridStruct._dataUnits = c_char_p(str.encode("MM"))
+        # self.spatialGridStruct._dataType = c_int(2)
+        # self.spatialGridStruct._dataSource = c_char_p("INTERNAL".encode())
+        # self.spatialGridStruct._lowerLeftCellX = c_int(self.xmin)
+        # self.spatialGridStruct._lowerLeftCellY = c_int(self.ymin)
+        # self.spatialGridStruct._numberOfCellsX = c_int(self.ncols)
+        # self.spatialGridStruct._numberOfCellsY = c_int(self.nrows)
+        # self.spatialGridStruct._cellSize = c_float(self.cellsize)
+        # self.spatialGridStruct._compressionMethod = c_int(26)
+        # self.spatialGridStruct._srsName = c_char_p(str.encode("SHG"))
+        # self.spatialGridStruct._srsDefinitionType = c_int(1)
+        # self.spatialGridStruct._srsDefinition = c_char_p(SHG_SRC_DEFINITION.encode())
+        # self.spatialGridStruct._xCoordOfGridCellZero = c_float(0)
+        # self.spatialGridStruct._yCoordOfGridCellZero = c_float(0)
+        # self.spatialGridStruct._nullValue = c_float(0)
+        # self.spatialGridStruct._timeZoneID = c_char_p(str.encode("GMT"))
+        # self.spatialGridStruct._timeZoneRawOffset = c_int(0)
+        # self.spatialGridStruct._isInterval = c_int(1)
+        # self.spatialGridStruct._isTimeStamped = c_int(1)
 
     def tearDown(self):
-        pass
+        ...
 
     def test_zeros_min(self):
         a = np.zeros((100, 100), np.float32)
@@ -278,7 +294,7 @@ class TestGenDss(unittest.TestCase):
         min_val = round(get_minimum_value(aflat, len(aflat), self.nodata), precision)
         np_min = round(np.min(a), precision)
         min_precision = abs(np_min - min_val) < (1 / pow(10, precision))
-        
+
         self.assertTrue(min_precision, "Minimum value not equal")
 
     def test_random_max(self):
@@ -336,12 +352,26 @@ class TestGenDss(unittest.TestCase):
 
         mean_val = round(get_meanvalue_value(aflat, len(aflat), self.nodata), precision)
 
-        self.assertEqual(mean_val, -3.4028234663852886e38, "Mean value not equal")
+        self.assertNotEqual(mean_val, -3.4028234663852886e38, "Mean value not equal")
 
-    def test_filter_nodata(self):
-        a = np.ones((100, 100), np.float32)
+    def test_filter_nodata_zeros(self):
+        a = np.zeros((100, 100), np.float32)
+        # flatten here used to simulate what happens in package writters
         aflat = a.flatten()
-        
+        shape = aflat.shape[0]
+
+        # stats before filter
+        amin, amax, amean = aflat.min(), aflat.max(), aflat.mean()
+
+        # filter the data
+        get_filter_nodata(aflat, c_int(shape), c_float(self.nodata))
+
+        # stats after filter
+        fmin, fmax, fmean = aflat.min(), aflat.max(), aflat.mean()
+
+        self.assertEqual(amin, fmin, f"Minimum values not equal: {amin} != {fmin}")
+        self.assertEqual(amax, fmax, f"Maximum values not equal: {amax} != {fmax}")
+        self.assertEqual(amean, fmean, f"Mean values not equal: {amean} != {fmean}")
 
 if __name__ == "__main__":
     unittest.main()

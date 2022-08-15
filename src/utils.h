@@ -29,3 +29,5 @@ char *dssGridDef(int gtype);
 char *utmGridDef(int zone, char *utmHemi);
 
 float roundValue(float var, int precision);
+
+void rangelimit_table(float minval, float maxval, int range, int bins, int datasize, float *rangelimit, int *histo, float *data);
