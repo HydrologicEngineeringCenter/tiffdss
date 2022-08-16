@@ -9,6 +9,7 @@ from hec.heclib.dss import HecDSSFileAccess
 
 this = "/app/tiffdss/tests/integration"
 
+
 class TestDssConvert(unittest.TestCase):
     @staticmethod
     def convert_to_dss(tif, dss, *args):
@@ -25,7 +26,6 @@ class TestDssConvert(unittest.TestCase):
         if stderr:
             return 0
         else:
-            print(stdout)
             return 1
 
     @staticmethod
@@ -39,7 +39,6 @@ class TestDssConvert(unittest.TestCase):
         )
         stdout, stderr = p.communicate()
         return stdout
-
 
     @classmethod
     def meta_time(cls, attr):
@@ -72,7 +71,9 @@ class TestDssConvert(unittest.TestCase):
                         stdout = self.gdalinfo(tif)
                         metadata_dict = json.loads(stdout)
 
-                        vtime = self.meta_time(metadata_dict["bands"][0]["metadata"][""]["GRIB_VALID_TIME"])
+                        vtime = self.meta_time(
+                            metadata_dict["bands"][0]["metadata"][""]["GRIB_VALID_TIME"]
+                        )
                         etime = vtime + timedelta(seconds=attr["data_interval"])
                         dsspath = "/{}/{}/{}/{}/{}/{}/".format(
                             attr["apart"],
@@ -89,6 +90,7 @@ class TestDssConvert(unittest.TestCase):
                             "-d {}".format(attr["data_type"].upper()),
                             "-u {}".format(attr["data_unit"].upper()),
                             "-p '{}'".format(dsspath),
+                            "-l 1",
                             "-m -999",
                         )
                         nrecords += 1
@@ -98,4 +100,4 @@ class TestDssConvert(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
