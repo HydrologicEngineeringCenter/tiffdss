@@ -3,11 +3,14 @@ import os
 import unittest
 
 from hec.heclib.dss import HecDSSUtilities
+from hec.heclib.util import Heclib
 
 this = "/app/tiffdss/tests/integration"
 
+
 class TestDssConvert(unittest.TestCase):
     def setUp(self):
+        Heclib.Hec_zsetMessageLevel(0, 0)
         self.fixtures = os.path.join(this, "fixtures")
         self.dss7 = os.path.join("/tmp", "test7.dss")
         self.dss6 = os.path.join("/tmp", "test6.dss")
@@ -30,5 +33,6 @@ class TestDssConvert(unittest.TestCase):
             # compare versions
             self.assertNotEqual(dss6_version, dss7_version)
 
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)

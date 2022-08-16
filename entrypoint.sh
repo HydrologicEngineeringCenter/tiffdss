@@ -11,7 +11,7 @@ rm -f /tmp/*.dss
 for opt in "$@";do
 
     case $opt in
-        integration) # Integration testing using hec-dssvue.sh
+        integration) # Integration testing using hec-dssvue.sh; verbosity defined in each script
             /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_tiff.py
             /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_version.py
             /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_grid_info.py

@@ -30,10 +30,6 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     // filter no data values to UNDEFINE_FLOAT
     filter_nodata(data, n, gridStructStore->_nullValue);
-    // reversing the array values rotates it 180
-    reverse_array(data, n);
-    // reverse each row to flip <--> 180
-    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
 
     // get the rangelimit table and histogram
     int bin_range = (int)(ceil(maxval) - floor(minval));
@@ -101,7 +97,7 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, char *dssfile, char *dsspath,
                              char *gridType, int dss_grid_type, char *gridDef, char *dataType,
                              int dss_data_type, char *units, char *tzname, int tzoffset,
-                             int compression_method, int timestamped, float nodata)
+                             int compression_method, int timestamped, float nodata, int flip_rotate)
 {
     // see if the record is_interval
     int interval = 0;
@@ -139,6 +135,14 @@ int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, ch
     float *data = (float *)CPLMalloc(sizeof(float) * dataSize);
     GDALRasterIO(raster, GF_Read, 0, 0, xsize, ysize, data, xsize, ysize, GDT_Float32, 0, 0);
 
+    // reversing the array values rotates it 180
+    if (flip_rotate == 1 || flip_rotate == 3)
+        reverse_array(data, dataSize);
+
+    // reverse each row to flip <--> 180
+    if (flip_rotate == 2 || flip_rotate == 3)
+        reverse_rows(data, gridStructStore->_numberOfCellsX, dataSize);
+
     // Spatial Grid Struct
     gridStructStore->_type = dss_grid_type;
     gridStructStore->_dataSource = "INTERNAL";
@@ -169,17 +173,19 @@ int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, ch
 
 void printUsage(char *name)
 {
-    printf("usage: %s  -p [-c] [-d] [-g] [-h] [-m] [-n] [-s] [-u] \n"
+    printf("usage: %s  -p [-c] [-d] [-f] [-g] [-h] [-l] [-m] [-n] [-s] [-u] [-v] [-z]\n"
            "\t-c: DSS compression method; UNDEFINED_COMPRESSION_METHOD or ZLIB_COMPRESSION (default: ZLIB_COMPRESSION)\n"
            "\t-d: DSS data type; PER-AVER | PER-CUM | INST-VAL | INST-CUM (default: PER-AVER)\n"
+           "\t-f: Flip options, 0 - no flip; 1 - flip up/down; 2 - flip left/right; 3 - flip up/down and left/right (default: 0)"
            "\t-g: DSS grid type; HRAP | ALBERS | SHG | SPECIFIED_GRID_TYPE | UTM (default: ALBERS)\n"
            "\t-h: Hemisphere N or S; use with -g UTM (default: N)\n"
-           "\t-n: Time zone name (default: GMT)\n"
            "\t-l: zsetMessageLevel (default: 0 (None))\n"
            "\t-m: No data value (default: 9999)\n"
+           "\t-n: Time zone name (default: GMT)\n"
            "\t-p: DSS pathname\n"
            "\t-s: DSS grid record time stamped; 0 | 1 (default: 1)\n"
            "\t-u: DSS grid record units (default: MM)\n"
+           "\t-v: Verbose; print some output\n"
            "\t-z: UTM Zone 1-60; use with -g UTM\n"
            "<input_Tiff> <output_DSS>\n",
            name);
@@ -194,6 +200,9 @@ int main(int argc, char *argv[])
     int tzoffset = 0;
     int timestamped = 1;
     int lvl = 0;
+    int flip_rotate = 0;
+
+    bool verbose = false;
 
     float nodata = 9999;
 
@@ -213,7 +222,7 @@ int main(int argc, char *argv[])
         printUsage(argv[0]);
     }
 
-    while ((opt = getopt(argc, argv, ":c:d:g:h:l:m:n:p:su:z:")) != -1)
+    while ((opt = getopt(argc, argv, ":c:d:fg:h:l:m:n:p:su:vz:")) != -1)
     {
         switch (opt)
         {
@@ -222,6 +231,9 @@ int main(int argc, char *argv[])
             break;
         case 'd':
             dataType = optarg;
+            break;
+        case 'f':
+            flip_rotate = atoi(optarg);
             break;
         case 'g':
             gridType = optarg;
@@ -247,6 +259,8 @@ int main(int argc, char *argv[])
         case 'u':
             units = optarg;
             break;
+        case 'v':
+            verbose = true;
         case 'z':
             utmZone = atoi(optarg);
             if (utmZone < 1 || utmZone > 60)
@@ -286,47 +300,51 @@ int main(int argc, char *argv[])
         printf("Define DSS pathname parts: %s\n", dsspath);
         return -1;
     }
-    else
-    {
-        printf("DSS pathname: %s\n", dsspath);
-    }
 
     // get the time zone offset
     tzoffset = tzOffset(tzname);
-    printf("Time Zone Name [offset]: %s[%d]\n", tzname, tzoffset);
 
     // get the grid definition
     int dss_grid_type = dssGridType(gridType);
     gridDef = dssGridDef(dss_grid_type);
-    printf("DSS Grid Type: %s[%d]\n", gridType, dss_grid_type);
 
     // get the data type
     int dss_data_type = dssDataType(dataType);
-    printf("DSS data type[type]: %s[%d]\n", dataType, dss_data_type);
 
     int compression_method = dssCompressionMethod(compressionMethod);
-    printf("Compression method [val]: %s[%d]\n", compressionMethod, compression_method);
 
     // define UTM grid definition
     if (dss_grid_type == 430)
     {
         gridDef = utmGridDef(utmZone, hemisphere);
-        printf("Hemisphere: %s", hemisphere);
-        printf("UTM Def: %s", gridDef);
+        if (verbose)
+        {
+            printf("Hemisphere: %s", hemisphere);
+            printf("UTM Def: %s", gridDef);
+        }
     }
 
     // last two non-optional arguments are input file (tiff) output file (dss)
     tiff = argv[argc - 2];
-    printf("Tiff file: %s\n", tiff);
     dssfile = argv[argc - 1];
-    printf("DSS file: %s\n", dssfile);
+
+    if (verbose)
+    {
+        printf("DSS pathname: %s\n", dsspath);
+        printf("Time Zone Name [offset]: %s[%d]\n", tzname, tzoffset);
+        printf("DSS Grid Type: %s[%d]\n", gridType, dss_grid_type);
+        printf("DSS data type[type]: %s[%d]\n", dataType, dss_data_type);
+        printf("Compression method [val]: %s[%d]\n", compressionMethod, compression_method);
+        printf("Tiff file: %s\n", tiff);
+        printf("DSS file: %s\n", dssfile);
+    }
 
     // Create a SpatialGridStruct and populate
     zStructSpatialGrid *gridStructStore = zstructSpatialGridNew(dsspath);
 
     status = zStructSpatialGridDefine(gridStructStore, tiff, dssfile, dsspath, gridType, dss_grid_type,
                                       gridDef, dataType, dss_data_type, units, tzname, tzoffset,
-                                      compression_method, timestamped, nodata);
+                                      compression_method, timestamped, nodata, flip_rotate);
 
     if (status != STATUS_OKAY)
     {

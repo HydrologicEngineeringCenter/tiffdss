@@ -1,14 +1,12 @@
 import unittest
 from ctypes import (
     CDLL,
-    POINTER,
     LibraryLoader,
     Structure,
     c_char_p,
     c_float,
     c_int,
     c_void_p,
-    pointer,
 )
 
 import numpy as np
@@ -372,6 +370,7 @@ class TestArrayStats(unittest.TestCase):
         self.assertEqual(amin, fmin, f"Minimum values not equal: {amin} != {fmin}")
         self.assertEqual(amax, fmax, f"Maximum values not equal: {amax} != {fmax}")
         self.assertEqual(amean, fmean, f"Mean values not equal: {amean} != {fmean}")
+
 
 if __name__ == "__main__":
     unittest.main()

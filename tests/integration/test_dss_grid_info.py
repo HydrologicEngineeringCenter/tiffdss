@@ -2,17 +2,18 @@ import os
 import random
 import unittest
 
-from jarray import zeros
-
 from hec.heclib.dss import HecDss
 from hec.heclib.grid import GridUtilities
-
+from hec.heclib.util import Heclib
+from jarray import zeros
 
 this = "/app/tiffdss/tests/integration"
 
+
 class TestGridInfo(unittest.TestCase):
     def setUp(self):
-        status = zeros(1,'i')
+        Heclib.Hec_zsetMessageLevel(0, 0)
+        status = zeros(1, "i")
         # dss6
         dss6path = os.path.join("/tmp", "test6.dss")
         self.dss6 = HecDss.open(dss6path)
@@ -33,7 +34,7 @@ class TestGridInfo(unittest.TestCase):
         self.dss7.close()
         self.grids6 = None
         self.grids7 = None
-    
+
     def test_cataloged_pathnames(self):
         self.assertEqual(self.cat6, self.cat7, "Cataloged pathnames not equal")
 
@@ -42,7 +43,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getLowerLeftCellX()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Lower left X fail to equal: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -51,7 +52,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getLowerLeftCellY()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Lower left Y fail to equal: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -60,7 +61,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getCellSize()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Cellsize: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -69,7 +70,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getNumberOfCellsX()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Number of Cells X: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -78,7 +79,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getNumberOfCellsY()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Number of Cells Y: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -87,7 +88,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getMinDataValue()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Min data value: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -96,7 +97,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getMaxDataValue()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Max data value: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -105,7 +106,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getMinDataValue()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Mean data value: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -114,7 +115,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getDataTypeName()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Data Type: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -123,7 +124,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getDataUnits()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Data units: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -132,7 +133,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getStartTime()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Start time: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -141,7 +142,7 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getEndTime()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Start time: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
@@ -150,10 +151,10 @@ class TestGridInfo(unittest.TestCase):
         gi7 = self.grids7.getGridInfo().getSpatialReferenceSystem()
         self.assertEqual(
             gi6,
-            gi7, 
+            gi7,
             "Grid SRS: Grid6, {} != Grid7, {}".format(gi6, gi7),
         )
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
