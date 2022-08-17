@@ -2,19 +2,20 @@ import json
 import os
 import re
 import subprocess
+import sys
 import unittest
 from datetime import datetime, timedelta
 
 from hec.heclib.dss import HecDSSFileAccess
 
-this = "/app/tiffdss/tests/integration"
+this = "/tiffdss/tests/integration"
 
 
 class TestDssConvert(unittest.TestCase):
     @staticmethod
     def convert_to_dss(tif, dss, *args):
         _args = " ".join(args)
-        cmd = " ".join(["/app/tiffdss/src/tiffdss", _args, tif, dss])
+        cmd = " ".join(["/tiffdss/src/tiffdss", _args, tif, dss])
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -90,7 +91,6 @@ class TestDssConvert(unittest.TestCase):
                             "-d {}".format(attr["data_type"].upper()),
                             "-u {}".format(attr["data_unit"].upper()),
                             "-p '{}'".format(dsspath),
-                            "-l 1",
                             "-m -999",
                         )
                         nrecords += 1

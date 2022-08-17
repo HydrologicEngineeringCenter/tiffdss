@@ -76,13 +76,13 @@ float minimum(float *arr, int n, float nodata)
 
 float meanvalue(float *arr, int n, float nodata)
 {
-    int count = 1;
-    float sum = arr[0];
+    int count = 0;
+    float sum = 0;
     float mean = UNDEFINED_FLOAT;
 
-    for (int i = 1; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        if (arr[i] != nodata && sum > UNDEFINED_FLOAT)
+        if (arr[i] != nodata && arr[i] != UNDEFINED_FLOAT)
         {
             sum += arr[i];
             count++;

@@ -12,12 +12,12 @@ for opt in "$@";do
 
     case $opt in
         integration) # Integration testing using hec-dssvue.sh; verbosity defined in each script
-            /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_tiff.py
-            /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_convert_version.py
-            /hec-dssvue-linux/hec-dssvue.sh /app/tiffdss/tests/integration/test_dss_grid_info.py
+            /hec-dssvue-linux/hec-dssvue.sh /tiffdss/tests/integration/test_dss_convert_tiff.py
+            /hec-dssvue-linux/hec-dssvue.sh /tiffdss/tests/integration/test_dss_convert_version.py
+            /hec-dssvue-linux/hec-dssvue.sh /tiffdss/tests/integration/test_dss_grid_info.py
             ;;
         unit) # Unit testing the tiffdss shared object
-            python -m unittest discover -v -s /app/tiffdss/tests/unit/
+            python -m unittest discover -v -s /tiffdss/tests/unit/
             ;;
         run) # Keep the container alive
             KEEP_ALIVE=true
