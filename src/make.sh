@@ -7,6 +7,3 @@ pushd $(dirname $0)
 make clean
 make tiffdss
 make libtiffdss.so
-
-mv -f /app/tiffdss/src/libtiffdss.so /usr/lib/
-printf "libtiffdss.so moved to /usr/lib/\n"

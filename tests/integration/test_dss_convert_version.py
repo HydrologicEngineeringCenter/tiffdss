@@ -5,7 +5,7 @@ import unittest
 from hec.heclib.dss import HecDSSUtilities
 from hec.heclib.util import Heclib
 
-this = "/app/tiffdss/tests/integration"
+this = "/tiffdss/tests/integration"
 
 
 class TestDssConvert(unittest.TestCase):

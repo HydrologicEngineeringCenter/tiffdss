@@ -7,7 +7,7 @@ from hec.heclib.grid import GridUtilities
 from hec.heclib.util import Heclib
 from jarray import zeros
 
-this = "/app/tiffdss/tests/integration"
+this = "/tiffdss/tests/integration"
 
 
 class TestGridInfo(unittest.TestCase):
