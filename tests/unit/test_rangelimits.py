@@ -74,7 +74,7 @@ class TestRangeLimitTable(unittest.TestCase):
         bins = 3
         bin_range = int(math.ceil(_max) - math.floor(_min))
         if bin_range > 0:
-            bins = math.floor(1 + 3.322 * math.log10((datasize))) + 1
+            bins = min(15, math.floor(1 + 3.322 * math.log10((datasize))) + 1)
 
         # Compute range limits and histogram to compare
         _rangelimits = self.internal_rangelimits(_min, _max, bin_range, bins)
