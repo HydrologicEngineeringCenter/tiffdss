@@ -25,11 +25,17 @@ float roundValue(float var, int precision)
 
 void rangelimit_table(float minval, float maxval, int range, int bins, int datasize, float *rangelimit, int *histo, float *data)
 {
-    float step = (float)range / bins;
+    int max_bins = 15;
 
     int i = 0;
     rangelimit[i] = UNDEFINED_FLOAT;
     rangelimit[i + 1] = minval;
+
+    if (bins > max_bins)
+        bins = max_bins;
+
+    float step = (float)range / bins;
+
     for (i = 2; i < bins - 1; i++)
     {
         if (step != 0)
