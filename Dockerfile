@@ -21,7 +21,7 @@ RUN mkdir -p /tiffdss
 COPY . /tiffdss/
 
 WORKDIR /tiffdss/src
-RUN make && \
+RUN make libtiffdss.so && \
     cp -f libtiffdss.so /usr/lib/
 
 ENTRYPOINT [ "/tiffdss/entrypoint.sh" ]
