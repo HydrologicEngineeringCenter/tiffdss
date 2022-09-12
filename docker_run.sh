@@ -10,7 +10,7 @@ docker build -t $IMAGE .
 # run
 # - with arguments uses the entrypoint.sh
 # - without arguments assumes interactive
-if [ "$#" -eq 0 ]; then
+if [ "$1" == "dev" ]; then
     printf "\nRunning the container interactively with a volume\n"
     docker run --rm -it --entrypoint /bin/bash -v $PWD/:/tiffdss/ --name $CONTAINER $IMAGE
 else

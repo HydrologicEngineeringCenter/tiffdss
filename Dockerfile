@@ -1,33 +1,28 @@
 # Compile DSS
 FROM osgeo/gdal:ubuntu-small-3.5.0
 
+ENV HECDSS_VERSION=7-IP
+ENV DSSVUE_VERSION=main
+
 RUN apt-get -y update && \
     apt-get install -y make git gcc gfortran python3-pip zlib1g-dev libffi-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN git clone --branch 7-IP https://github.com/HydrologicEngineeringCenter/hec-dss.git
-RUN git clone --depth 1 https://github.com/HydrologicEngineeringCenter/hec-dssvue-linux.git
-
-WORKDIR /hec-dss/heclib/heclib_c
-RUN make
-
-WORKDIR /hec-dss/heclib/heclib_f
-RUN make
-
-ENV HECFLAG="/hec-dss/heclib/heclib_c/Output/libhec_c.a /hec-dss/heclib/heclib_f/Output/libhec_f.a"
+RUN git clone --branch ${HECDSS_VERSION} https://github.com/HydrologicEngineeringCenter/hec-dss.git
+RUN git clone --branch ${DSSVUE_VERSION} https://github.com/HydrologicEngineeringCenter/hec-dssvue-linux.git
 
 RUN mkdir -p /tiffdss
 
 COPY . /tiffdss/
 
-WORKDIR /tiffdss/src
-RUN make libtiffdss.so && \
-    cp -f libtiffdss.so /usr/lib/
+WORKDIR /tiffdss
 
-ENTRYPOINT [ "/tiffdss/entrypoint.sh" ]
+ENTRYPOINT [ "./entrypoint.sh" ]
 
-RUN useradd appuser
-USER appuser
+# Check the entrypoint.sh for these options:
+#   itest - integration testing
+#   utest - unit testing
+#   build - build tiffdss and dependencies (default)
+#   alive - keep the container alive
 
-# Check the entrypoint.sh for these options: "integration", "unit", and/or "run" for testing
-CMD [ "" ]
+CMD [ "build" ]
