@@ -19,7 +19,7 @@ for opt in "$@";do
         utest) # Unit testing the tiffdss shared object
             python -m unittest discover -v -s /tiffdss/tests/unit/
             ;;
-        build) # Run 'make' for tiffdss
+        build) # make tiffdss
             cd /tiffdss/src
             make
             ;;
