@@ -11,15 +11,19 @@ rm -f /tmp/*.dss
 for opt in "$@";do
 
     case $opt in
-        integration) # Integration testing using hec-dssvue.sh; verbosity defined in each script
+        itest) # Integration testing using hec-dssvue.sh; verbosity defined in each script
             /hec-dssvue-linux/hec-dssvue.sh /tiffdss/tests/integration/test_dss_convert_tiff.py
             /hec-dssvue-linux/hec-dssvue.sh /tiffdss/tests/integration/test_dss_convert_version.py
             /hec-dssvue-linux/hec-dssvue.sh /tiffdss/tests/integration/test_dss_grid_info.py
             ;;
-        unit) # Unit testing the tiffdss shared object
+        utest) # Unit testing the tiffdss shared object
             python -m unittest discover -v -s /tiffdss/tests/unit/
             ;;
-        run) # Keep the container alive
+        build) # Run 'make' for tiffdss
+            cd /tiffdss/src
+            make
+            ;;
+        alive) # Keep the container alive
             KEEP_ALIVE=true
             ;;
         * | help) # Print this message

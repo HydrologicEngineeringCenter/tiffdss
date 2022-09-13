@@ -4,25 +4,24 @@ This repository contains a utility to read a GeoTiff (single band) and write the
 
 # Local Development
 
-## Start the Container
+## Build and Run
 
-```
-> ./docker_run.sh
-```
+The shell script `docker_run.sh` can be used to build/run the Docker image/container.  There are argument options for running tests, keeping the container `alive`, or building binaries.  Any combination of arguments can be used but the one argument (`dev`) is used mainly for local development.  Below are the arguments and what they do.
 
-Dockerfile uses `entrypoint` and `CMD` arguments:
-- integration
-- unit
-- run
+| Argument| Evaluated In | Description|
+| :------ | :----------- | :--------- |
+| dev   | docker_run.sh | Run the container interactively in bash with a mounted volume |
+| itest | entrypoint.sh | Integration testing using hec-dssvue.sh; verbosity defined in each script |
+| utest | entrypoint.sh | Unit testing the tiffdss shared object |
+| build | entrypoint.sh | Run 'make' for tiffdss |
+| alive | entrypoint.sh | Keep the container alive|
+| help  | entrypoint.sh | Print help message|
 
-`integration` and `unit` run those tests, and `run` keeps the container running.  Arguments can be used in any combination.
 
 ## Build tiffdss
 
-With an interactive container session
-
 ```
-> /app/tiffdss/src/make.sh
+> ./docker_run.sh build
 ```
 
 # Usage: tiffdsss binary
