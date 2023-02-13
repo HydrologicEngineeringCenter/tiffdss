@@ -6,7 +6,8 @@ on:
       - "v*"
 
 jobs:
-  build:
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref,'refs/heads/main')
     name: Upload Release Assets
     runs-on: ubuntu-latest
     steps:
@@ -15,18 +16,15 @@ jobs:
 
       - name: Docker Build
         shell: bash
-        run: |
-          docker build -t tiffdss:${{ github.sha }} .
+        run: docker build -t tiffdss:${{ github.sha }} .
 
       - name: Docker Run
         shell: bash
-        run: |
-          docker run -v ${{ github.workspace }}:/tiffdss/ tiffdss:${{ github.sha }}
+        run: docker run -v ${{ github.workspace }}:/tiffdss/ tiffdss:${{ github.sha }}
 
       - name: Zip Archive
         shell: bash
-        run: |
-          zip -r tiffdss.zip --junk-paths ${{ github.workspace }}/src/output/
+        run: zip -r tiffdss.zip --junk-paths ${{ github.workspace }}/src/output/
 
       - name: Create Release
         id: create_release
