@@ -15,7 +15,7 @@ class TestDssConvert(unittest.TestCase):
     @staticmethod
     def convert_to_dss(tif, dss, *args):
         _args = " ".join(args)
-        cmd = " ".join(["/tiffdss/src/tiffdss", _args, tif, dss])
+        cmd = " ".join(["tiffdss", _args, tif, dss])
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -64,8 +64,8 @@ class TestDssConvert(unittest.TestCase):
         for p, attr in self.products.items():
             self.p_path = os.path.join(self.fixtures, p)
             if os.path.exists(self.p_path):
-                nrecords = 0
                 for dirpath, dirnames, filenames in os.walk(self.p_path):
+                    nrecords = 0
                     for filename in filenames:
                         tif = os.path.join(dirpath, filename)
 
@@ -94,9 +94,9 @@ class TestDssConvert(unittest.TestCase):
                             "-m -999",
                         )
                         nrecords += 1
-        file_access = HecDSSFileAccess(self.dss7)
-        dss_records = file_access.getNumberRecords()
-        self.assertEqual(nrecords, dss_records)
+                    file_access = HecDSSFileAccess(self.dss7)
+                    dss_records = file_access.getNumberRecords()
+                    self.assertEqual(nrecords, dss_records)
 
 
 if __name__ == "__main__":
