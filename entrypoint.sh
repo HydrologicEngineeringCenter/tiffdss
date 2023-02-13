@@ -22,6 +22,7 @@ for opt in "$@";do
         build) # make tiffdss
             cd /tiffdss/src
             make
+            cp ./output/libtiffdss.so /usr/lib
             ;;
         alive) # Keep the container alive
             KEEP_ALIVE=true

@@ -1,18 +1,17 @@
-name: Docker Image CI
+name: Docker Image CI and Test
 
 on:
   push:
-    branches: [ "stable","develop" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "stable","develop" ]
+    branches: ["main"]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag tiffdss-test:$(date +%s)
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        shell: bash
+        run: ./docker_run.sh build utest
