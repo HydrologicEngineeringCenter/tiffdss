@@ -11,7 +11,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest"]
-    if: endsWith(github.ref, 'main')
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
