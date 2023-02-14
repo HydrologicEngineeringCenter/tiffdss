@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           cd ${{ github.workspace }}/src/output
-          tar -czf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar.gz ./tiffdss*
+          tar -czf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar.gz .
 
       - uses: ncipollo/release-action@v1
         with:
