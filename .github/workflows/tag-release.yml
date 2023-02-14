@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    if: endsWith(github.ref,'refs/heads/main')
+    if: endsWith(github.ref,'main')
     name: Upload Release Assets
     runs-on: ubuntu-latest
     steps:
