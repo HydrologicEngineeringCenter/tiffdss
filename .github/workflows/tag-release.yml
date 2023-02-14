@@ -7,27 +7,38 @@ on:
 
 jobs:
   release:
-    name: Tag Release
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest"]
+    if: endsWith(github.ref, 'main')
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Docker Build
+      - name: Build Library
         shell: bash
-        run: docker build -t tiffdss:${{ github.sha }} .
+        run: |
+          cd ${{ github.workspace }}/src
+          make
 
-      - name: Docker Run
-        shell: bash
-        run: docker run -v ${{ github.workspace }}:/tiffdss/ tiffdss:${{ github.sha }}
+      # - name: Docker Build
+      #   shell: bash
+      #   run: docker build -t tiffdss:${{ github.sha }} .
 
-      - name: Zip Archive
+      # - name: Docker Run
+      #   shell: bash
+      #   run: docker run -v ${{ github.workspace }}:/tiffdss/ tiffdss:${{ github.sha }}
+
+      - name: Tar Archive
         shell: bash
-        run: zip -r tiffdss.zip --junk-paths ${{ github.workspace }}/src/output/
+        run: |
+          cd ${{ github.workspace }}/src/output
+          tar -czf ${{ github.workspace }}/src/tiffdss_${{ github.ref_name }}.tar.gz ./tiffdss*
 
       - uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "${{ github.workspace }}/src/output/tiffdss.zip"
+          artifacts: "${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}*"
           bodyFile: ${{ github.workspace }}/RELEASE.md
           makeLatest: true
