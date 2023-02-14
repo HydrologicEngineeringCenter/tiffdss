@@ -29,7 +29,7 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "${{ github.workspace }}/src/output/tiffdss.zip"
-          bodyFile: ${{ github.workspace }}/RELEASE.md
+          # bodyFile: ${{ github.workspace }}/RELEASE.md
           makeLatest: true
 
       # - name: Create Release
