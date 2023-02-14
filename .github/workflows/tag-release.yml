@@ -16,24 +16,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.3.0
       
-      - name: Checkout HEC-DSS
-        uses: actions/checkout@v3.3.0
-        with: 
-          repository: HydrologicEngineeringCenter/hec-dss@latest
+      # - name: Checkout HEC-DSS
+      #   uses: actions/checkout@v3.3.0
+      #   with: 
+      #     repository: HydrologicEngineeringCenter/hec-dss@latest
 
-      - name: Build Library
+      # - name: Build Library
+      #   shell: bash
+      #   run: |
+      #     cd ${{ github.workspace }}/src
+      #     make
+
+      - name: Docker Build
         shell: bash
-        run: |
-          cd ${{ github.workspace }}/src
-          make
+        run: docker build -t tiffdss:${{ github.sha }} .
 
-      # - name: Docker Build
-      #   shell: bash
-      #   run: docker build -t tiffdss:${{ github.sha }} .
-
-      # - name: Docker Run
-      #   shell: bash
-      #   run: docker run -v ${{ github.workspace }}:/tiffdss/ tiffdss:${{ github.sha }}
+      - name: Docker Run
+        shell: bash
+        run: docker run -v ${{ github.workspace }}/src/output:/tiffdss/src/output tiffdss:${{ github.sha }}
 
       - name: Tar Archive
         shell: bash
