@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    if: github.event_name == 'push' && startsWith(github.ref,'refs/heads/main')
+    if: github.event_name == 'push' && endsWith(github.ref,'refs/heads/main')
     name: Upload Release Assets
     runs-on: ubuntu-latest
     steps:
