@@ -5,17 +5,6 @@
 #include "utils.h"
 #include "zdssMessages.h"
 
-int opendss(long long *ifltab, const char *dssfile)
-{
-    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_INTERNAL_DIAG_1);
-    return zopen7(ifltab, dssfile);
-}
-
-int closedss(long long *ifltab)
-{
-    return zcloseInternal(ifltab, 0);
-}
-
 float roundValue(float var, int precision)
 {
     int precision_ = 1 / pow(10, precision);

@@ -8,6 +8,13 @@ KEEP_ALIVE=false
 # remove temp dss files if they exist
 rm -f /tmp/*.dss
 
+# create symbolic links to use these libraries in itest and utest options
+# build option is required
+ln -s /hec-dss/heclib/heclib_c/Output/libhec_c.a /usr/lib/libhec_c.a
+ln -s /hec-dss/heclib/heclib_f/Output/libhec_f.a /usr/lib/libhec_f.a
+ln -s /tiffdss/src/output/libtiffdss.so /usr/lib/libtiffdss.so
+ln -s /tiffdss/src/output/tiffdss /usr/bin/tiffdss
+
 for opt in "$@";do
 
     case $opt in
@@ -22,7 +29,6 @@ for opt in "$@";do
         build) # make tiffdss
             cd /tiffdss/src
             make
-            cp ./output/libtiffdss.so /usr/lib
             ;;
         alive) # Keep the container alive
             KEEP_ALIVE=true
