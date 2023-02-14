@@ -2,12 +2,13 @@ name: Upload Release Assets
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
 
 jobs:
   release:
-    if: endsWith(github.ref,'main')
     name: Upload Release Assets
     runs-on: ubuntu-latest
     steps:
