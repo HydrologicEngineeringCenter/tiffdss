@@ -15,10 +15,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3.3.0
-      
+
       # - name: Checkout HEC-DSS
       #   uses: actions/checkout@v3.3.0
-      #   with: 
+      #   with:
       #     repository: HydrologicEngineeringCenter/hec-dss@latest
 
       # - name: Build Library
@@ -40,6 +40,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/src/output
           tar -czf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar.gz .
+          tar -rzf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar.gz -C /usr/lib/x86_64-linux-gnu libgdal.so
 
       - uses: ncipollo/release-action@v1
         with:
