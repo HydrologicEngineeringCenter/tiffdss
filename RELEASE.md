@@ -1,8 +1,8 @@
 # Version Release Log
 
-# v0.1.1
+## v0.1.2
 
-## Code Cleanup
+### GDAL Version Update
 
-- Remove C functions not used in the utilities source file (utils.c)
-- Update unit and integration testing
+- Base image bump from `osgeo/gdal:ubuntu-small-3.5.0` to `osgeo/gdal:ubuntu-small-3.5.3`
+- Tested gdal versions v3.6.x but all tests fail
