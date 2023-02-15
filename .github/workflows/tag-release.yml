@@ -38,7 +38,7 @@ jobs:
       - name: Tar Archive
         shell: bash
         run: |
-          tar -cf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C ${{ github.workspace }}/src/output
+          tar -cf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C ${{ github.workspace }}/src/output .
       
       - name: Find SO
         shell: bash
