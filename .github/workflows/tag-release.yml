@@ -39,7 +39,10 @@ jobs:
         shell: bash
         run: |
           tar -cf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C ${{ github.workspace }}/src/output
-          find / -name libgdal.so
+      
+      - name: Find SO
+        shell: bash
+        run: find / -name libgdal.so
 
       - uses: ncipollo/release-action@v1
         with:
