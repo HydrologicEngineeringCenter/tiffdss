@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
-
+  workflow_dispatch:
 jobs:
   release:
     strategy:
@@ -38,9 +38,8 @@ jobs:
       - name: Tar Archive
         shell: bash
         run: |
-          tar -cf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C ${{ github.workspace }}/src/output . && \
-          tar -rf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C /usr/lib/x86_64-linux-gnu libgdal.so && \
-          gzip ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar
+          tar -cf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C ${{ github.workspace }}/src/output
+          find / -name libgdal.so
 
       - uses: ncipollo/release-action@v1
         with:
