@@ -1,5 +1,5 @@
 # Compile DSS
-FROM osgeo/gdal:ubuntu-small-3.5.0
+FROM osgeo/gdal:ubuntu-small-3.5.3
 
 ENV HECDSS_VERSION=7-IP
 ENV DSSVUE_VERSION=main
