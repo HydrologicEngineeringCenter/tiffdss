@@ -38,9 +38,9 @@ jobs:
       - name: Tar Archive
         shell: bash
         run: |
-          cd ${{ github.workspace }}/src/output
-          tar -czf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar.gz .
-          tar -rzf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar.gz -C /usr/lib/x86_64-linux-gnu libgdal.so
+          tar -cf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C ${{ github.workspace }}/src/output . && \
+          tar -rf ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar -C /usr/lib/x86_64-linux-gnu libgdal.so && \
+          gzip ${{ github.workspace }}/src/tiffdss_${{ matrix.os }}_${{ github.ref_name }}.tar
 
       - uses: ncipollo/release-action@v1
         with:
