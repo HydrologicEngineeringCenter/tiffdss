@@ -1,7 +1,7 @@
 # Compile DSS
-FROM osgeo/gdal:ubuntu-small-3.5.3
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0
 
-ENV HECDSS_VERSION=7-IP
+ENV HECDSS_VERSION=7-IQ-10
 ENV DSSVUE_VERSION=main
 
 RUN apt-get -y update && \
