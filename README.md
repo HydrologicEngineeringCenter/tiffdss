@@ -24,7 +24,7 @@ The shell script `docker_run.sh` can be used to build/run the Docker image/conta
 > ./docker_run.sh build
 ```
 
-# Usage: tiffdsss binary
+# Usage: tiffdss binary
 
 ```
 tiffdss -p [-c] [-d] [-g] [-h] [-m] [-n] [-s] [-u] <input_Tiff> <output_DSS>
