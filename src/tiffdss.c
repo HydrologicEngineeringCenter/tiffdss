@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <ctype.h>
 #include <gdal.h>
 #include <math.h>
@@ -9,7 +10,17 @@
 
 #include "utils.h"
 
-int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
+
+float* allocate_float(float value) {
+  float* tmp = calloc(1, sizeof(float));
+  if( tmp != NULL)
+     *tmp = value;
+  return tmp;
+}
+
+
+// int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
+int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore)
 {
     int i, n, status;
     float minval = 0;
@@ -18,18 +29,16 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_NONE);
 
-    // long long ifltab[250];
-    // memset(ifltab, 0 , 250 * sizeof(long long));
     long long *ifltab = calloc(250, sizeof(long long) * 250);
 
     n = gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY;
 
-    minval = minimum(data, n, gridStructStore->_nullValue);
-    maxval = maximum(data, n, gridStructStore->_nullValue);
-    mean = meanvalue(data, n, gridStructStore->_nullValue);
+    minval = minimum(gridStructStore->_data, n, gridStructStore->_nullValue);
+    maxval = maximum(gridStructStore->_data, n, gridStructStore->_nullValue);
+    mean = meanvalue(gridStructStore->_data, n, gridStructStore->_nullValue);
 
     // filter no data values to UNDEFINE_FLOAT
-    filter_nodata(data, n, gridStructStore->_nullValue);
+    filter_nodata(gridStructStore->_data, n, gridStructStore->_nullValue);
 
     // get the rangelimit table and histogram
     int bin_range = (int)(ceil(maxval) - floor(minval));
@@ -43,53 +52,19 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     histo = calloc(bins, sizeof(float));
 
     // populate the rangelimit and histogram
-    rangelimit_table(minval, maxval, bin_range, bins, n, rangelimit, histo, data);
+    rangelimit_table(minval, maxval, bin_range, bins, n, rangelimit, histo, gridStructStore->_data);
 
-    zStructSpatialGrid *spatialGridStruct = zstructSpatialGridNew(gridStructStore->pathname);
+    gridStructStore->_rangeLimitTable = &(rangelimit[0]);
+    gridStructStore->_numberEqualOrExceedingRangeLimit = &(histo[0]);
+    gridStructStore->_numberOfRanges = bins;
 
-    spatialGridStruct->_type = gridStructStore->_type;
-    spatialGridStruct->_version = gridStructStore->_version;
-    spatialGridStruct->_dataUnits = gridStructStore->_dataUnits;
-    spatialGridStruct->_dataType = gridStructStore->_dataType;
-    spatialGridStruct->_dataSource = gridStructStore->_dataSource;
-    spatialGridStruct->_lowerLeftCellX = gridStructStore->_lowerLeftCellX;
-    spatialGridStruct->_lowerLeftCellY = gridStructStore->_lowerLeftCellY;
-    spatialGridStruct->_numberOfCellsX = gridStructStore->_numberOfCellsX;
-    spatialGridStruct->_numberOfCellsY = gridStructStore->_numberOfCellsY;
-    spatialGridStruct->_cellSize = gridStructStore->_cellSize;
-    spatialGridStruct->_compressionMethod = gridStructStore->_compressionMethod;
-
-    spatialGridStruct->_rangeLimitTable = &(rangelimit[0]);
-    spatialGridStruct->_numberEqualOrExceedingRangeLimit = &(histo[0]);
-    spatialGridStruct->_numberOfRanges = bins;
-
-    spatialGridStruct->_srsDefinitionType = gridStructStore->_srsDefinitionType;
-    spatialGridStruct->_srsName = gridStructStore->_srsName;
-    spatialGridStruct->_srsDefinition = gridStructStore->_srsDefinition;
-    spatialGridStruct->_xCoordOfGridCellZero = gridStructStore->_xCoordOfGridCellZero;
-    spatialGridStruct->_yCoordOfGridCellZero = gridStructStore->_yCoordOfGridCellZero;
-    spatialGridStruct->_nullValue = gridStructStore->_nullValue;
-    spatialGridStruct->_timeZoneID = gridStructStore->_timeZoneID;
-    spatialGridStruct->_timeZoneRawOffset = gridStructStore->_timeZoneRawOffset;
-    spatialGridStruct->_isInterval = gridStructStore->_isInterval;
-    spatialGridStruct->_isTimeStamped = gridStructStore->_isTimeStamped;
-
-    spatialGridStruct->_maxDataValue = &maxval;
-    spatialGridStruct->_minDataValue = &minval;
-    spatialGridStruct->_meanDataValue = &mean;
-    spatialGridStruct->_data = data;
+    gridStructStore->_minDataValue = allocate_float(minval);
+    gridStructStore->_maxDataValue = allocate_float(maxval);
+    gridStructStore->_meanDataValue = allocate_float(mean);
 
     status = zopen7(ifltab, dssfilename);
-    status = zspatialGridStore(ifltab, spatialGridStruct);
+    status = zspatialGridStore(ifltab, gridStructStore);
     status = zclose(ifltab);
-
-    free(rangelimit);
-    free(histo);
-
-    free(ifltab);
-
-    zstructFree(spatialGridStruct);
-    zstructFree(gridStructStore);
 
     return status;
 }
@@ -144,10 +119,11 @@ int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, ch
         reverse_rows(data, gridStructStore->_numberOfCellsX, dataSize);
 
     // Spatial Grid Struct
+    char *dataSource = "INTERNAL";
     gridStructStore->_type = dss_grid_type;
-    gridStructStore->_dataSource = "INTERNAL";
+    gridStructStore->_dataSource = mallocAndCopy(dataSource);
     gridStructStore->_version = 1;
-    gridStructStore->_dataUnits = units;
+    gridStructStore->_dataUnits = mallocAndCopy(units);
     gridStructStore->_dataType = dss_data_type;
     gridStructStore->_numberOfCellsX = xsize;
     gridStructStore->_numberOfCellsY = ysize;
@@ -157,12 +133,12 @@ int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, ch
     gridStructStore->_compressionMethod = compression_method;
 
     gridStructStore->_srsDefinitionType = 1;
-    gridStructStore->_srsName = gridType;
-    gridStructStore->_srsDefinition = gridDef;
+    gridStructStore->_srsName = mallocAndCopy(gridType);
+    gridStructStore->_srsDefinition = mallocAndCopy(gridDef);
     gridStructStore->_xCoordOfGridCellZero = 0;
     gridStructStore->_yCoordOfGridCellZero = 0;
     gridStructStore->_nullValue = nodata;
-    gridStructStore->_timeZoneID = tzname;
+    gridStructStore->_timeZoneID = mallocAndCopy(tzname);
     gridStructStore->_timeZoneRawOffset = tzoffset;
     gridStructStore->_isInterval = interval;
     gridStructStore->_isTimeStamped = timestamped;
@@ -353,7 +329,9 @@ int main(int argc, char *argv[])
     }
 
     // Write to DSS record
-    status = writeRecord(dssfile, gridStructStore, gridStructStore->_data);
+    status = writeRecord(dssfile, gridStructStore);
+
+    zstructFree(gridStructStore);
 
     if (status != STATUS_OKAY)
     {
@@ -361,5 +339,4 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    return 1;
 }
