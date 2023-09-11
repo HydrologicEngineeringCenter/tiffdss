@@ -18,8 +18,7 @@ float* allocate_float(float value) {
   return tmp;
 }
 
-
-// int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
+// int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore)
 int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore)
 {
     int i, n, status;
@@ -66,6 +65,15 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore)
     status = zspatialGridStore(ifltab, gridStructStore);
     status = zclose(ifltab);
 
+    return status;
+}
+
+// int writeRecord_External(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
+int writeRecord_External(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
+{
+    int status;
+    gridStructStore->_data = data;
+    status = writeRecord(dssfilename, gridStructStore);
     return status;
 }
 
