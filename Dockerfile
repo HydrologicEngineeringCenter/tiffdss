@@ -1,28 +1,42 @@
-# Compile DSS
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0
+ARG GDAL_VERSION=ubuntu-full-3.7.0
 
-ENV HECDSS_VERSION=7-IQ-10
-ENV DSSVUE_VERSION=main
+# ~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
+# builder
+# ~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
+FROM ghcr.io/osgeo/gdal:${GDAL_VERSION} AS builder
 
-RUN apt-get -y update && \
-    apt-get install -y make git gcc gfortran python3-pip zlib1g-dev libffi-dev && \
-    rm -rf /var/lib/apt/lists/*
+ARG HECDSS_VERSION=master
+ARG DSSVUE_VERSION=main
 
-RUN git clone --branch ${HECDSS_VERSION} https://github.com/HydrologicEngineeringCenter/hec-dss.git
-RUN git clone --branch ${DSSVUE_VERSION} https://github.com/HydrologicEngineeringCenter/hec-dssvue-linux.git
+# # solving possible issue of ATP behind a proxy
+RUN cat <<EOF > /etc/apt/apt.conf.d/99proxy
+Acquire::http::Pipeline-Depth 0;
+Acquire::http::No-Cache true;
+Acquire::BrokenProxy true;
+EOF
 
-RUN mkdir -p /tiffdss
+# && apt-get -y install build-essential gfortran zlib1g-dev\
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get -y install make gcc gfortran zlib1g-dev libffi-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . /tiffdss/
+ADD --keep-git-dir=false https://github.com/HydrologicEngineeringCenter/hec-dss.git#${HECDSS_VERSION}:heclib /heclib
 
-WORKDIR /tiffdss
+# compile dss c
+WORKDIR /heclib/heclib_c
+RUN make
 
-ENTRYPOINT [ "./entrypoint.sh" ]
+# compile dss fortran
+WORKDIR /heclib/heclib_f
+RUN make
 
-# Check the entrypoint.sh for these options:
-#   itest - integration testing
-#   utest - unit testing
-#   build - build tiffdss and dependencies (default)
-#   alive - keep the container alive
+# compile tiffdss
+WORKDIR /tiffdss/src
 
-CMD [ "build" ]
+COPY ./src .
+
+COPY --chmod=755 ./entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT [ "/entrypoint.sh" ]

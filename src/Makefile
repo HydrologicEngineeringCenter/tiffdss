@@ -7,10 +7,10 @@ CWARNING = -Werror -Wno-unused-result
 BUILD_DIR := ./output
 
 # resulting archive locations
-HECFLAG = /hec-dss/heclib/heclib_c/Output/libhec_c.a /hec-dss/heclib/heclib_f/Output/libhec_f.a
+HECFLAG = /heclib/heclib_c/Output/libhec_c.a /heclib/heclib_f/Output/libhec_f.a
 
 # define header paths to search in
-export CPATH := /hec-dss/heclib/heclib_c/src/headers
+export CPATH := /heclib/heclib_c/src/headers
 
 OBJS = $(addprefix $(BUILD_DIR)/, tiffdss.o utils.o)
 
@@ -21,17 +21,17 @@ OBJS = $(addprefix $(BUILD_DIR)/, tiffdss.o utils.o)
 build : tiffdss libtiffdss.so
 
 # build the cli
-tiffdss : hecdss $(OBJS)
+tiffdss : $(OBJS)
 	$(CC) $(filter-out $<, $^) $(HECFLAG) $(HECFLAG) $(LDFLAGS) -o $(BUILD_DIR)/$@
 
 # build the shared object
-libtiffdss.so: hecdss $(OBJS)
+libtiffdss.so: $(OBJS)
 	$(CC) $(filter-out $<, $^) $(HECFLAG) $(HECFLAG) $(LDFLAGS) -shared -o $(BUILD_DIR)/$@
 
 # enter the directory (-C) and then execute 'make' to build dependencies
-hecdss:
-	$(MAKE) -C /hec-dss/heclib/heclib_c
-	$(MAKE) -C /hec-dss/heclib/heclib_f
+# hecdss:
+# 	$(MAKE) -C /heclib/heclib_c
+# 	$(MAKE) -C /heclib/heclib_f
 
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(BUILD_DIR)
